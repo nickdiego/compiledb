@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+#
+#   compiledb-generator: Tool for generating LLVM Compilation Database
+#   files for make-based build systems.
+#
+#   Copyright (c) 2017 Nick Diego Yamane <nick.diego@gmail.com>
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+set -e
+
+scriptdir=$(cd `dirname $0`; pwd)
+make_cmd=${scriptdir}/compiledb-gen-make
+
+VERBOSE=0
+
+show_help() {
+    cat << EOF
+
+usage: compiledb-gen-aosp [-h] [-v] [-f] [-o OUTPUT] [-i INPUT] [-p INCLUDE_PREFIX] MODULE
+
+ Generates compilation database file for an AOSP (Android Open Source Project) modules.
+
+positional arguments:
+  MODULE                The AOSP module directory (relative path)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         Show output from build process
+  -o OUTPUT, --output OUTPUT
+                        Save the compilation database file as OUTPUT. Default:
+                        MODULE/compile_commands.json
+  -r AOSP_ROOT, --aosp-root AOSP_ROOT
+                        AOSP root path. Default: current directory
+  -H AOSP_ROOT_HOST, --aosp-root-host AOSP_ROOT_HOST
+                        AOSP root path on host machine. For cases where one is running aosp
+                        builds inside a Docker container and using compilation database outside it.
+                        Default: AOSP_ROOT
+
+EOF
+}
+
+while (( $# )); do
+    case $1 in
+        -o | --output)
+            shift && comp_db=$1
+            ;;
+        -r | --aosp-root)
+            shift && aosp_root=$1
+            ;;
+        -H | --aosp-root-host)
+            shift && aosp_root_host=$1
+            ;;
+        -h | --help)
+            show_help
+            exit 0;;
+        -v | --verbose)
+            VERBOSE=1
+            ;;
+        -*)
+            echo "Unrecognized option $1" >&2
+            echo >&2; show_help
+            exit 1
+            ;;
+        *)
+            module=$1
+    esac
+    shift
+done
+
+aosp_root=${aosp_root:-$(pwd)}
+aosp_root_host=${aosp_root_host:-${aosp_root}}
+module=${module:-bionic/libc}
+
+build_err="/tmp/build-err.txt"
+comp_db="${aosp_root}/${module}/compile_commands.json"
+
+if [ ! -e ${aosp_root}/build/envsetup.sh ]; then
+    echo "Error: ${aosp_root} not a valid AOSP root path!" >&2
+    exit 1
+fi
+echo "# Loading build env"
+source ${aosp_root}/build/envsetup.sh >/dev/null
+
+echo "# Configuring x86_64 build"
+lunch aosp_x86_64-eng >/dev/null
+unset -v USE_CCACHE
+
+declare -a module_opts
+
+if [ -n "$module" ]; then
+    if [ ! -d "${aosp_root}/${module}" ]; then
+        echo "!! Error: Module '${module}' not found in AOSP tree!"
+        exit 1
+    fi
+    module_opts=( all_modules "BUILD_MODULES_IN_PATHS=${module}" )
+    echo "# Chosen module: $module"
+else
+    echo "# Full AOSP indexing!"
+fi
+
+num_cpus=$(grep -c ^processor /proc/cpuinfo)
+make_opts=( -j${num_cpus} -C $aosp_root -f 'build/core/main.mk' )
+parser_opts=(
+    "--output=${comp_db}"
+    "--include-prefix=${aosp_root_host}"
+    ${aosp_root} )
+
+(( $VERBOSE )) && parser_opts+=( --verbose )
+
+echo "# Generating compilation database file $(readlink -f $comp_db)"
+$make_cmd "${make_opts[@]}" "${module_opts[@]}" -- "${parser_opts[@]}" 2>$build_err
+
+# ex: ts=2 sw=4 et filetype=sh
