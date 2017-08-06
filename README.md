@@ -60,6 +60,7 @@ got, and maybe send some PR's :)
 ## License
 GNU GPLv3
 
+[compdb]: https://clang.llvm.org/docs/JSONCompilationDatabase.html
 [ycm]: https://github.com/Valloric/YouCompleteMe
 [rtags]: https://github.com/Andersbakken/rtags
 [chrom]: https://github.com/arakashic/chromatica.nvim
