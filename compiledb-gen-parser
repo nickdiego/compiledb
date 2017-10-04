@@ -64,7 +64,7 @@ def main():
 
     with input_file(input_path) as build_log:
         msg("## Processing build commands from '{}'".format('std input' if input_path == None else input_path))
-        (count, skipped, compile_db) = parse_flags(build_log, include_path_prefix, include_path_prefix)
+        (count, skipped, compile_db) = parse_flags(build_log, proj_dir, include_path_prefix)
         # to generate relative include paths (as is)
         # (count, skipped, compile_db) = parse_flags(build_log, include_path_prefix, None)
         msg("## Writing compilation database with {} entries to {}".format(len(compile_db), 'std output' if output_path == None else output_path))
