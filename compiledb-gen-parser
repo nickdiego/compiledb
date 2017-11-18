@@ -101,7 +101,7 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
     compiler = None
 
     dir_stack = []
-    sub_dir = proj_dir
+    working_dir = proj_dir
 
     # Process build log
     for line in build_log:
@@ -116,10 +116,10 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
         # Parse directory that make entering/leaving
         enter_dir = make_enter_dir.match(line)
         if (make_enter_dir.match(line)):
-            sub_dir = enter_dir.group('dir')
-            dir_stack.append(sub_dir)
+            working_dir = enter_dir.group('dir')
+            dir_stack.append(working_dir)
         elif (make_leave_dir.match(line)):
-            sub_dir = dir_stack.pop();
+            working_dir = dir_stack.pop();
 
         if (cc_compile_regex.match(line)):
             compiler = 'cc'
@@ -167,7 +167,7 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
             msg("args={} --> {}".format(len(arguments), filepath))
         arguments.append(filepath)
         compile_db.append({
-            'directory': sub_dir,
+            'directory': working_dir,
             'file': filepath,
             'arguments': arguments
         })
