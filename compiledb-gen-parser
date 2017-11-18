@@ -24,17 +24,7 @@ import os
 import os.path
 import re
 import argparse
-import multiprocessing
 import json
-
-# Path for this script
-script_dir = os.path.dirname(os.path.realpath(__file__))
-
-# Default flags for make
-default_make_flags = ["-i", "-j" + str(multiprocessing.cpu_count())]
-
-# Default verbose mode (may be set by command line options)
-verbose = False
 
 
 def main():
