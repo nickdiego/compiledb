@@ -79,8 +79,8 @@ def parse_flags(build_log, proj_dir, inc_prefix):
     ignore_regex = re.compile("(-x assembler)|(-o ([a-zA-Z0-9._].tmp))|(/dev/null)")
     skip_count = 0
 
-    cc_compile_regex = re.compile("(^.*-?gcc )|(^.*-?clang )")
-    cpp_compile_regex = re.compile("(^.*-?g\+\+ )|(^.*-?clang\+\+ )")
+    cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
+    cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
 
     # Flags we want:
     # -includes (-i, -I)
