@@ -69,6 +69,10 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
     cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
     cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
 
+    # Leverage make --print-directory option
+    make_enter_dir=re.compile("make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]$")
+    make_leave_dir=re.compile("make\[\d+\]: Leaving directory .*$")
+
     # Flags we want:
     # -includes (-i, -I)
     # -warnings (-Werror), but no assembler, etc. flags (-Wa,-option)
@@ -96,8 +100,18 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
     line_count = 0
     compiler = None
 
+    dir_stack = []
+    sub_dir = proj_dir
+
     # Process build log
     for line in build_log:
+
+        enter_dir = make_enter_dir.match(line)
+        if (make_enter_dir.match(line)):
+            sub_dir = enter_dir.group('dir')
+            dir_stack.append(sub_dir)
+        elif (make_leave_dir.match(line)):
+            sub_dir = dir_stack.pop();
 
         if (cc_compile_regex.match(line)):
             compiler = 'cc'
@@ -145,7 +159,7 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
             msg("args={} --> {}".format(len(arguments), filepath))
         arguments.append(filepath)
         compile_db.append({
-            'directory': proj_dir,
+            'directory': sub_dir,
             'file': filepath,
             'arguments': arguments
         })
