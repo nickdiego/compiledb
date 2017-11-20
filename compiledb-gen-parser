@@ -70,8 +70,8 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
     cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
 
     # Leverage make --print-directory option
-    make_enter_dir=re.compile("make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]$")
-    make_leave_dir=re.compile("make\[\d+\]: Leaving directory .*$")
+    make_enter_dir=re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
+    make_leave_dir=re.compile("^\s*make\[\d+\]: Leaving directory .*$")
 
     # Flags we want:
     # -includes (-i, -I)
@@ -100,11 +100,12 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
     line_count = 0
     compiler = None
 
-    dir_stack = []
+    dir_stack = [proj_dir]
     working_dir = proj_dir
 
     # Process build log
     for line in build_log:
+        msg("working_dir={}".format(working_dir))
         # Concatenate line if need
         accumulate_line = line
         while (line.endswith('\\\n')):
@@ -119,7 +120,8 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
             working_dir = enter_dir.group('dir')
             dir_stack.append(working_dir)
         elif (make_leave_dir.match(line)):
-            working_dir = dir_stack.pop();
+            dir_stack.pop()
+            working_dir = dir_stack[-1]
 
         if (cc_compile_regex.match(line)):
             compiler = 'cc'
