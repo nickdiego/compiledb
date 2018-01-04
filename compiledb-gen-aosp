@@ -20,7 +20,7 @@
 #
 set -e
 
-scriptdir=$(cd `dirname $0`; pwd)
+scriptdir=$(cd "$(dirname "$0")" && pwd)
 make_cmd=${scriptdir}/compiledb-gen-make
 
 VERBOSE=0
@@ -86,7 +86,7 @@ module=${module:-bionic/libc}
 build_err="/tmp/build-err.txt"
 comp_db="${aosp_root}/${module}/compile_commands.json"
 
-if [ ! -e ${aosp_root}/build/envsetup.sh ]; then
+if [ ! -e "${aosp_root}/build/envsetup.sh" ]; then
     echo "Error: ${aosp_root} not a valid AOSP root path!" >&2
     exit 1
 fi
@@ -111,13 +111,13 @@ else
 fi
 
 num_cpus=$(grep -c ^processor /proc/cpuinfo)
-make_opts=( -j${num_cpus} -C $aosp_root -f 'build/core/main.mk' )
+make_opts=( "-j${num_cpus}" -C "$aosp_root" -f 'build/core/main.mk' )
 parser_opts=(
     "--output=${comp_db}"
     "--include-prefix=${aosp_root_host}"
-    ${aosp_root} )
+    "${aosp_root}" )
 
-(( $VERBOSE )) && parser_opts+=( --verbose )
+(( VERBOSE )) && parser_opts+=( --verbose )
 
 echo "# Generating compilation database file $(readlink -f $comp_db)"
 $make_cmd "${make_opts[@]}" "${module_opts[@]}" -- "${parser_opts[@]}" 2>$build_err
