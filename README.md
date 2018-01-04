@@ -17,27 +17,27 @@ it's more cross-compiling friendly than YCM-generator's fake-toolchanin approach
 
 ## Usage
 
-Generate `compile_commands.json` using compiledb's "make wrapper" script,
+Generate `compile_commands.json` using compiledb-generator's "make wrapper" script,
 executing Makefile target `all`:
 ```bash
-$ compiledb-make all > compile_commands.json
+$ compiledb-gen-make all > compile_commands.json
 ```
 
-Generate `compile_commands.json` using compiledb's "make wrapper" script,
+Generate `compile_commands.json` using compiledb-generator's "make wrapper" script,
 using `custom_makefile.mk` as main Makefile:
 ```bash
-$ compiledb-make -f custom_makefile.mk > compile_commands.json
+$ compiledb-gen-make -f custom_makefile.mk > compile_commands.json
 ```
 
 Genrate `compile_commands.json` for some AOSP module (assuming you're running
 the script from the root of [AOSP][aosp] tree):
 ```bash
-$ compiledb-aosp -o compile_commands.json <aosp/module/path>
+$ compiledb-gen-aosp -o compile_commands.json <aosp/module/path>
 ```
 
 Parse a build log file and prints the compilation database to stdout:
 ```bash
-$ compiledb-parser . < build-log.txt
+$ compiledb-gen-parser . < build-log.txt
 ```
 
 ## Testing / Contributing
