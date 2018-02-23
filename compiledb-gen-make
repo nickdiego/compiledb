@@ -20,7 +20,7 @@
 #
 set -e
 
-scriptdir=$(cd "$(dirname "$0")" && pwd)
+scriptdir=$(cd "$(dirname $(readlink "$0"))" && pwd)
 parser_cmd=${scriptdir}/compiledb-gen-parser
 
 show_help() {
