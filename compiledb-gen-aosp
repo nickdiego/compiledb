@@ -20,7 +20,7 @@
 #
 set -e
 
-scriptdir=$(cd "$(dirname $(readlink "$0"))" && pwd)
+scriptdir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 make_cmd=${scriptdir}/compiledb-gen-make
 
 VERBOSE=0
