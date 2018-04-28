@@ -38,12 +38,14 @@ def main():
     parser.add_argument("-o", "--output", help="Save the config file as OUTPUT. Default: .ycm_extra_conf.py, or .color_coded if --format=cc.")
     parser.add_argument("-i", "--input", help="File path to be used as input. It must contain the make output. Default: stdin.")
     parser.add_argument("-p", "--include-prefix", help="Prefix path to be concatenated to each include path flag. Default: $PWD")
+    parser.add_argument("-e", "--exclude", nargs='+', help="Space-separated list of regular expressions to exclude files.")
     parser.add_argument("PROJ_DIR", nargs='?', default=os.getcwd(), help="The root directory of the project.")
     args = vars(parser.parse_args())
 
     include_path_prefix = args["include_prefix"]
     output_path = args["output"]
     input_path = args["input"]
+    exclude_list = args["exclude"]
     verbose = args["verbose"]
     pretty_output = True
 
@@ -54,9 +56,9 @@ def main():
 
     with input_file(input_path) as build_log:
         msg("## Processing build commands from '{}'".format('std input' if input_path is None else input_path))
-        (count, skipped, compile_db) = parse_flags(build_log, proj_dir, include_path_prefix, verbose)
+        (count, skipped, compile_db) = parse_flags(build_log, proj_dir, include_path_prefix, exclude_list, verbose)
         # to generate relative include paths (as is)
-        # (count, skipped, compile_db) = parse_flags(build_log, include_path_prefix, None)
+        # (count, skipped, compile_db) = parse_flags(build_log, include_path_prefix, exclude_list, None)
         msg("## Writing compilation database with {} entries to {}".format(len(compile_db), 'std output' if output_path is None else output_path))
         generate_compile_db_file(compile_db, output_path, pretty_output)
         msg("## Done.")
@@ -64,7 +66,7 @@ def main():
     return 0
 
 
-def parse_flags(build_log, proj_dir, inc_prefix, verbose):
+def parse_flags(build_log, proj_dir, inc_prefix, exclude_list, verbose):
     skip_count = 0
     cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
     cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
@@ -93,6 +95,13 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
     # Used to only bundle filenames with applicable arguments
     filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot"]
     invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
+
+    try:
+        regex_pattern = "|".join(exclude_list)
+        exclude_list_regex = re.compile(regex_pattern)
+    except:
+        msg('Error: Regular expression not valid: {}'.format(regex_pattern))
+        sys.exit(-1)
 
     file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
@@ -158,6 +167,11 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
                         arguments.append(opt + p)
                 else:
                     arguments.append(word)
+
+        if filepath and exclude_list_regex.match(filepath):
+            if verbose:
+                msg('excluding file {}'.format(filepath))
+            filepath = None
 
         if filepath is None:
             # msg("Empty file name. Ignoring: {}".format(line))
