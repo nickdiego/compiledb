@@ -141,6 +141,8 @@ def parse_flags(build_log, proj_dir, inc_prefix, verbose):
             if(word[0] != '-' or not flags_whitelist.match(word)):
                 continue
 
+            word = word.decode('unicode_escape')
+
             # include arguments for this option, if there are any, as a tuple
             if(i != len(words) - 1 and word in filename_flags and words[i + 1][0] != '-'):
                 w = words[i + 1]
