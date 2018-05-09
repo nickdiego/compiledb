@@ -38,7 +38,7 @@ def main():
     parser.add_argument("-o", "--output", help="Save the config file as OUTPUT. Default: .ycm_extra_conf.py, or .color_coded if --format=cc.")
     parser.add_argument("-i", "--input", help="File path to be used as input. It must contain the make output. Default: stdin.")
     parser.add_argument("-p", "--include-prefix", help="Prefix path to be concatenated to each include path flag. Default: $PWD")
-    parser.add_argument("-e", "--exclude", nargs='+', help="Space-separated list of regular expressions to exclude files.")
+    parser.add_argument("-e", "--exclude", default=[], nargs='+', help="Space-separated list of regular expressions to exclude files.")
     parser.add_argument("PROJ_DIR", nargs='?', default=os.getcwd(), help="The root directory of the project.")
     args = vars(parser.parse_args())
 
