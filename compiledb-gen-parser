@@ -88,7 +88,7 @@ def parse_flags(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         "-[iIDF].*",
         "-std=[a-z0-9+]+",
         "-(no)?std(lib|inc)",
-        "-D([a-zA-Z0-9_]+)=(.*)"
+        "-D([a-zA-Z0-9_]+)=?(.*)"
     ]
     flags_whitelist = re.compile("|".join(map("^{}$".format, flags_whitelist)))
 
