@@ -89,12 +89,12 @@ def parse_flags(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         "-std=[a-z0-9+]+",
         "-(no)?std(lib|inc)",
         "-D([a-zA-Z0-9_]+)=?(.*)",
-        "--sysroot=.*"
+        "--sysroot=?.*"
     ]
     flags_whitelist = re.compile("|".join(map("^{}$".format, flags_whitelist)))
 
     # Used to only bundle filenames with applicable arguments
-    filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot"]
+    filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot", "--sysroot"]
     invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
 
     exclude_regex = None
