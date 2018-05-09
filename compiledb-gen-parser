@@ -97,12 +97,13 @@ def parse_flags(build_log, proj_dir, inc_prefix, exclude_list, verbose):
     filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot"]
     invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
 
-    try:
-        regex_pattern = "|".join(exclude_list)
-        exclude_list_regex = re.compile(regex_pattern)
-    except:
-        msg('Error: Regular expression not valid: {}'.format(regex_pattern))
-        sys.exit(-1)
+    exclude_regex = None
+    if len(exclude_list) > 0:
+        try:
+            exclude_regex = re.compile("|".join(exclude_list))
+        except:
+            msg('Error: Regular expression not valid: {}'.format(regex_pattern))
+            sys.exit(-1)
 
     file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
@@ -169,7 +170,7 @@ def parse_flags(build_log, proj_dir, inc_prefix, exclude_list, verbose):
                 else:
                     arguments.append(word)
 
-        if filepath and exclude_list_regex.match(filepath):
+        if filepath and exclude_regex and exclude_regex.match(filepath):
             if verbose:
                 msg('excluding file {}'.format(filepath))
             filepath = None
