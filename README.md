@@ -1,5 +1,7 @@
 # Compilation Database Generator
 
+[![CircleCI](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master.svg?style=svg)](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master)
+
 Tool for generating [clang/LLVM's JSON Compilation Database][compdb] file for
 `make`-based build systems.
 
