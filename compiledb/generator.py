@@ -71,5 +71,9 @@ def generate_compile_db_file(compile_db, output_path, indent=False):
         json.dump(compile_db, output, indent=indent)
         output.write(os.linesep)
 
+
+def _main():
+    sys.exit(generate(sys.argv[1:]))
+
 # ex: ts=2 sw=4 et filetype=python
 

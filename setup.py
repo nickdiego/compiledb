@@ -38,7 +38,7 @@ setup(
     python_requires='>=2.7,<3.0',
     entry_points={
         'console_scripts': [
-            'compiledb-gen-parser=compiledb.parser:_main',
+            'compiledb=compiledb.generator:_main',
         ],
     },
     project_urls={
