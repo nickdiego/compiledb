@@ -18,11 +18,20 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from compiledb.parser import parse_build_log
 
-import sys
-from compiledb.parser import _main
 
-if(__name__ == "__main__"):
-    sys.exit(_main())
+def test_empty():
+    build_log = ''
+    proj_dir = '/tmp'
+    incpath_prefix = proj_dir
+    exclude_list = []
+    verbose = False
 
-# ex: ts=2 sw=4 et filetype=python
+    result = parse_build_log(build_log, proj_dir, incpath_prefix, exclude_list, verbose)
+    assert result.count == 0
+    assert result.skipped == 0
+    assert result.compdb is not None
+    assert type(result.compdb) == list
+    assert len(result.compdb) == 0
+

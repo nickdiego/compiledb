@@ -18,57 +18,25 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from __future__ import print_function
-
-import argparse
-import json
-import os
 import os.path
 import re
-import sys
+
+from compiledb.utils import msg
+
+class ParsingResult(object):
+    def __init__(self):
+        self.skipped = 0
+        self.count = 0
+        self.compdb = []
+
+    def __str__(self):
+        return "Line count: {}, Skipped: {}, Entries: {}".format(
+                self.count, self.skipped, len(self.compdb))
 
 
-def _main():
-    if(sys.platform.startswith("win32")):
-        msg("Error: Windows is not supported")
+def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
+    result = ParsingResult()
 
-    # parse command-line args
-    parser = argparse.ArgumentParser(description="Process build output and automatically generates compilation database file for it.")
-    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Show output from build process")
-    parser.add_argument("-f", "--force", action="store_true", help="Overwrite the file if it exists.")
-    parser.add_argument("-o", "--output", help="Save the config file as OUTPUT. Default: compile_commands.json")
-    parser.add_argument("-i", "--input", help="File path to be used as input. It must contain the make output. Default: stdin.")
-    parser.add_argument("-p", "--include-prefix", help="Prefix path to be concatenated to each include path flag. Default: $PWD")
-    parser.add_argument("-e", "--exclude", default=[], nargs='+', help="Space-separated list of regular expressions to exclude files.")
-    parser.add_argument("PROJ_DIR", nargs='?', default=os.getcwd(), help="The root directory of the project.")
-    args = vars(parser.parse_args())
-
-    include_path_prefix = args["include_prefix"]
-    output_path = args["output"]
-    input_path = args["input"]
-    exclude_list = args["exclude"]
-    verbose = args["verbose"]
-    pretty_output = True
-
-    proj_dir = os.path.abspath(args["PROJ_DIR"])
-    if not os.path.isdir(proj_dir):
-        msg("Error: Project dir '{}' does not exists!".format(proj_dir))
-        return 1
-
-    with input_file(input_path) as build_log:
-        msg("## Processing build commands from '{}'".format('std input' if input_path is None else input_path))
-        (count, skipped, compile_db) = parse(build_log, proj_dir, include_path_prefix, exclude_list, verbose)
-        # to generate relative include paths (as is)
-        # (count, skipped, compile_db) = parse(build_log, include_path_prefix, exclude_list, None)
-        msg("## Writing compilation database with {} entries to {}".format(len(compile_db), 'std output' if output_path is None else output_path))
-        generate_compile_db_file(compile_db, output_path, pretty_output)
-        msg("## Done.")
-
-    return 0
-
-
-def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
-    skip_count = 0
     cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
     cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
 
@@ -104,14 +72,11 @@ def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             exclude_regex = re.compile("|".join(exclude_list))
         except:
             msg('Error: Regular expression not valid: {}'.format(regex_pattern))
-            sys.exit(-1)
+            return None
 
     file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
-    compile_db = []
-    line_count = 0
     compiler = None
-
     dir_stack = [proj_dir]
     working_dir = proj_dir
 
@@ -144,7 +109,7 @@ def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         arguments = [compiler]
         words = split_cmd_line(line)[1:]
         filepath = None
-        line_count += 1
+        result.count += 1
 
         for (i, word) in enumerate(words):
             if (file_regex.match(word)):
@@ -178,28 +143,22 @@ def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         if filepath is None:
             # msg("Empty file name. Ignoring: {}".format(line))
-            skip_count += 1
+            result.skipped += 1
             continue
 
         # add entry to database
         # TODO performance: serialize to json file here?
         if (verbose):
             msg("args={} --> {}".format(len(arguments), filepath))
+
         arguments.append(filepath)
-        compile_db.append({
+        result.compdb.append({
             'directory': working_dir,
             'file': filepath,
             'arguments': arguments
         })
 
-    return (line_count, skip_count, compile_db)
-
-
-def generate_compile_db_file(compile_db, output_path, indent=False):
-
-    with output_file(output_path) as output:
-        json.dump(compile_db, output, indent=indent)
-        output.write(os.linesep)
+    return result
 
 
 def split_cmd_line(line):
@@ -225,16 +184,5 @@ def unbalanced_quotes(s):
             double += 1
     return (single % 2 == 1 or double % 2 == 1)
 
-
-def input_file(path):
-    return sys.stdin if path is None else open(path, "r")
-
-
-def output_file(path):
-    return sys.stdout if path is None else open(path, "w")
-
-
-def msg(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
 
 # ex: ts=2 sw=4 et filetype=python

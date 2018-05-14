@@ -21,7 +21,7 @@
 set -e
 
 scriptdir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-parser_cmd=${scriptdir}/compiledb-gen-parser
+parser_cmd="python2 -m compiledb"
 
 show_help() {
     cat << EOF

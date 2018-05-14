@@ -18,19 +18,21 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from compiledb.parser import parse
+from __future__ import print_function
 
-def test_empty():
-    build_log = ''
-    proj_dir = '/tmp'
-    incpath_prefix = proj_dir
-    exclude_list = []
-    verbose = False
+import sys
 
-    (count, skipped, db) = parse(build_log, proj_dir, incpath_prefix, exclude_list, verbose)
-    assert count == 0
-    assert skipped == 0
-    assert db is not None
-    assert type(db) == list
-    assert len(db) == 0
+
+def input_file(path):
+    return sys.stdin if path is None else open(path, "r")
+
+
+def output_file(path):
+    return sys.stdout if path is None else open(path, "w")
+
+
+def msg(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+# ex: ts=2 sw=4 et filetype=python
 
