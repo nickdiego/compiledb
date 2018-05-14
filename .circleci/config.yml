@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:2.7-jessie
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "requirements-devel.txt" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            python2 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements-devel.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements-devel.txt" }}
+
+      - run:
+          name: run tests
+          command: |
+            source venv/bin/activate
+            pytest --junitxml=test-report.xml
+
+      - store_artifacts:
+          path: test-report.xml
+          destination: test-report.xml
