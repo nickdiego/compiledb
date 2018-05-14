@@ -1,5 +1,7 @@
 # Compilation Database Generator
 
+[![CircleCI](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master.svg?style=svg)](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master)
+
 Tool for generating [clang/LLVM's JSON Compilation Database][compdb] file for
 `make`-based build systems.
 
@@ -47,15 +49,16 @@ modules for navigating and studying purposes (after having no satisfatory result
 current tools such as [YCM-Generator][ycm] and [Bear][bear]). So I've reworked
 YCM-Generator, which resulted in `compiledb-gen-parser` and used successfully to
 generate compilation database for some AOSP modules in ~1min running in a [Docker][docker]
-container and then I've been able to use some great tools such as _Vim + [YouCompleteMe][ycm] +
-[rtags][rtags] + [chromatica.nvim][chrom]_ with the codebase.
+container and then some great tools may be used for studying and analysis purposes, such as:
 
-Even though it's working ok in my environment, with AOSP 5.0, etc, it's still a
-work in progress and not well tested yet. So, give it a try! Report the issues you
-got, and maybe send some PR's :)
+- [Vim][vim] + [YouCompleteMe][ycm] + [rtags][rtags] + [chromatica.nvim][chrom]
+- [Neovim][neovim] + [LanguageClient-neovim][lsp] + [cquery][cquery] + [deoplete][deoplete]
 
+Notice:
 - _Windows not supported yet (at least not tested yet in Cygwin/MinGW)_
 - _Tested only on Linux (Arch Linux) so far_
+
+Patches are always welcome :)
 
 ## License
 GNU GPLv3
@@ -67,3 +70,9 @@ GNU GPLv3
 [ycm-gen]: https://github.com/rdnetto/YCM-Generator
 [bear]: https://github.com/rizsotto/Bear
 [aosp]: https://source.android.com/
+[docker]: https://www.docker.com/
+[vim]: https://www.vim.org/
+[neovim]: https://neovim.io/
+[lsp]: https://github.com/autozimu/LanguageClient-neovim
+[cquery]: https://github.com/cquery-project/cquery
+[deoplete]: https://github.com/Shougo/deoplete.nvim
