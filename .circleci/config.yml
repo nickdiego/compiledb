@@ -16,7 +16,8 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python2 -m venv venv
+            mkdir -p ./venv
+            virtualenv ./venv
             source venv/bin/activate
             pip install -r requirements-devel.txt
 
