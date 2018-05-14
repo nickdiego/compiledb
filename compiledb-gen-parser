@@ -24,6 +24,6 @@ import sys
 from compiledb.generator import generate
 
 if(__name__ == "__main__"):
-    sys.exit(generate())
+    sys.exit(generate(sys.argv[1:]))
 
 # ex: ts=2 sw=4 et filetype=python

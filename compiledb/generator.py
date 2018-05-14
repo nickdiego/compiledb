@@ -28,7 +28,7 @@ from compiledb.parser import parse as parse_build_log
 from compiledb.utils import msg, input_file, output_file
 
 
-def generate():
+def generate(args):
     if(sys.platform.startswith("win32")):
         msg("Error: Windows is not supported")
 
@@ -41,7 +41,7 @@ def generate():
     parser.add_argument("-p", "--include-prefix", help="Prefix path to be concatenated to each include path flag. Default: $PWD")
     parser.add_argument("-e", "--exclude", default=[], nargs='+', help="Space-separated list of regular expressions to exclude files.")
     parser.add_argument("PROJ_DIR", nargs='?', default=os.getcwd(), help="The root directory of the project.")
-    args = vars(parser.parse_args())
+    args = vars(parser.parse_args(args))
 
     include_path_prefix = args["include_prefix"]
     output_path = args["output"]
