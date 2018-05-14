@@ -24,7 +24,7 @@ import os
 import os.path
 import sys
 
-from compiledb.parser import parse as parse_build_log
+from compiledb.parser import parse_build_log
 from compiledb.utils import msg, input_file, output_file
 
 
@@ -57,10 +57,10 @@ def generate(args):
 
     with input_file(input_path) as build_log:
         msg("## Processing build commands from '{}'".format('std input' if input_path is None else input_path))
-        (count, skipped, compile_db) = parse_build_log(build_log, proj_dir, include_path_prefix, exclude_list, verbose)
+        result = parse_build_log(build_log, proj_dir, include_path_prefix, exclude_list, verbose)
         output_str = 'std output' if output_path is None else output_path
-        msg("## Writing compilation database with {} entries to {}".format(len(compile_db), output_str))
-        generate_compile_db_file(compile_db, output_path, pretty_output)
+        msg("## Writing compilation database with {} entries to {}".format(len(result.compdb), output_str))
+        generate_compile_db_file(result.compdb, output_path, pretty_output)
         msg("## Done.")
 
     return 0

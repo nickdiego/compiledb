@@ -20,13 +20,23 @@
 #
 import os.path
 import re
-import sys
 
-from compiledb.utils import *
+from compiledb.utils import msg
+
+class ParsingResult(object):
+    def __init__(self):
+        self.skipped = 0
+        self.count = 0
+        self.compdb = []
+
+    def __str__(self):
+        return "Line count: {}, Skipped: {}, Entries: {}".format(
+                self.count, self.skipped, len(self.compdb))
 
 
-def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
-    skip_count = 0
+def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
+    result = ParsingResult()
+
     cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
     cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
 
@@ -62,14 +72,11 @@ def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             exclude_regex = re.compile("|".join(exclude_list))
         except:
             msg('Error: Regular expression not valid: {}'.format(regex_pattern))
-            sys.exit(-1)
+            return None
 
     file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
-    compile_db = []
-    line_count = 0
     compiler = None
-
     dir_stack = [proj_dir]
     working_dir = proj_dir
 
@@ -102,7 +109,7 @@ def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         arguments = [compiler]
         words = split_cmd_line(line)[1:]
         filepath = None
-        line_count += 1
+        result.count += 1
 
         for (i, word) in enumerate(words):
             if (file_regex.match(word)):
@@ -136,21 +143,22 @@ def parse(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         if filepath is None:
             # msg("Empty file name. Ignoring: {}".format(line))
-            skip_count += 1
+            result.skipped += 1
             continue
 
         # add entry to database
         # TODO performance: serialize to json file here?
         if (verbose):
             msg("args={} --> {}".format(len(arguments), filepath))
+
         arguments.append(filepath)
-        compile_db.append({
+        result.compdb.append({
             'directory': working_dir,
             'file': filepath,
             'arguments': arguments
         })
 
-    return (line_count, skip_count, compile_db)
+    return result
 
 
 def split_cmd_line(line):

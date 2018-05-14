@@ -18,7 +18,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from compiledb.parser import parse
+from compiledb.parser import parse_build_log
+
 
 def test_empty():
     build_log = ''
@@ -27,10 +28,10 @@ def test_empty():
     exclude_list = []
     verbose = False
 
-    (count, skipped, db) = parse(build_log, proj_dir, incpath_prefix, exclude_list, verbose)
-    assert count == 0
-    assert skipped == 0
-    assert db is not None
-    assert type(db) == list
-    assert len(db) == 0
+    result = parse_build_log(build_log, proj_dir, incpath_prefix, exclude_list, verbose)
+    assert result.count == 0
+    assert result.skipped == 0
+    assert result.compdb is not None
+    assert type(result.compdb) == list
+    assert len(result.compdb) == 0
 
