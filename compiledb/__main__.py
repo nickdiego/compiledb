@@ -19,11 +19,9 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
-
-from compiledb.generator import generate
+from .generator import _main
 
 if(__name__ == "__main__"):
-    sys.exit(generate(sys.argv[1:]))
+    _main()
 
 # ex: ts=2 sw=4 et filetype=python
