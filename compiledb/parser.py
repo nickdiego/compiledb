@@ -23,6 +23,7 @@ import re
 
 from compiledb.utils import msg
 
+
 class ParsingResult(object):
     def __init__(self):
         self.skipped = 0
@@ -31,7 +32,15 @@ class ParsingResult(object):
 
     def __str__(self):
         return "Line count: {}, Skipped: {}, Entries: {}".format(
-                self.count, self.skipped, len(self.compdb))
+            self.count, self.skipped, len(self.compdb))
+
+
+class Error(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return "Error: {}".format(self.msg)
 
 
 def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
@@ -71,8 +80,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         try:
             exclude_regex = re.compile("|".join(exclude_list))
         except:
-            msg('Error: Regular expression not valid: {}'.format(regex_pattern))
-            return None
+            raise Error('Regular expression not valid: {}'.format(exclude_list))
 
     file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
