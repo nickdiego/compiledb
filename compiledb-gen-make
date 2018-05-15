@@ -21,7 +21,7 @@
 set -e
 
 scriptdir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-parser_cmd="python2 -m compiledb"
+parser_cmd="python -m compiledb"
 
 show_help() {
     cat << EOF

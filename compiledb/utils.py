@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 #   compiledb-generator: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
@@ -33,6 +33,10 @@ def output_file(path):
 
 def msg(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
+
+
+def unescape(s):
+    return s.encode().decode('unicode_escape')
 
 # ex: ts=2 sw=4 et filetype=python
 

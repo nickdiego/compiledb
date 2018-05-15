@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 #   compiledb-generator: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
@@ -21,7 +21,7 @@
 import os.path
 import re
 
-from compiledb.utils import msg
+from compiledb.utils import msg, unescape
 
 
 class ParsingResult(object):
@@ -126,7 +126,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             if(word[0] != '-' or not flags_whitelist.match(word)):
                 continue
 
-            word = word.decode('unicode_escape')
+            word = unescape(word)
 
             # include arguments for this option, if there are any, as a tuple
             if(i != len(words) - 1 and word in filename_flags and words[i + 1][0] != '-'):

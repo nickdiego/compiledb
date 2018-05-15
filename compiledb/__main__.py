@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 #   compiledb-generator: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
@@ -19,7 +19,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from .generator import _main
+from compiledb.generator import _main
 
 if(__name__ == "__main__"):
     _main()

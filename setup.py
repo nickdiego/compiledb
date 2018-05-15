@@ -27,6 +27,8 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
     ],
     keywords='compilation-database clang c cpp makefile rtags completion',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
@@ -35,7 +37,7 @@ setup(
         'dev': [],
         'test': ['pytest'],
     },
-    python_requires='>=2.7,<3.0',
+    python_requires='>=2.7',
     entry_points={
         'console_scripts': [
             'compiledb=compiledb.generator:_main',
