@@ -24,11 +24,37 @@ import os
 import os.path
 import sys
 
-from compiledb.parser import parse_build_log
+from compiledb.parser import parse_build_log, Error
 from compiledb.utils import msg, input_file, output_file
 
 
 def generate(args):
+    include_path_prefix = args["include_prefix"]
+    output_path = args["output"]
+    input_path = args["input"]
+    exclude_list = args["exclude"]
+    verbose = args["verbose"]
+    pretty_output = True
+
+    proj_dir = os.path.abspath(args["PROJ_DIR"])
+    if not os.path.isdir(proj_dir):
+        raise Error("Project dir '{}' does not exists!".format(proj_dir))
+
+    with input_file(input_path) as build_log:
+        msg("## Processing build commands from '{}'".format('std input' if input_path is None else input_path))
+        result = parse_build_log(build_log, proj_dir, include_path_prefix, exclude_list, verbose)
+
+        output_str = 'std output' if output_path is None else output_path
+        msg("## Writing compilation database with {} entries to {}".format(len(result.compdb), output_str))
+
+        with output_file(output_path) as output:
+            json.dump(result.compdb, output, indent=pretty_output)
+            output.write(os.linesep)
+
+        msg("## Done.")
+
+
+def _main():
     if(sys.platform.startswith("win32")):
         msg("Error: Windows is not supported")
 
@@ -41,39 +67,16 @@ def generate(args):
     parser.add_argument("-p", "--include-prefix", help="Prefix path to be concatenated to each include path flag. Default: $PWD")
     parser.add_argument("-e", "--exclude", default=[], nargs='+', help="Space-separated list of regular expressions to exclude files.")
     parser.add_argument("PROJ_DIR", nargs='?', default=os.getcwd(), help="The root directory of the project.")
-    args = vars(parser.parse_args(args))
 
-    include_path_prefix = args["include_prefix"]
-    output_path = args["output"]
-    input_path = args["input"]
-    exclude_list = args["exclude"]
-    verbose = args["verbose"]
-    pretty_output = True
+    args = vars(parser.parse_args())
 
-    proj_dir = os.path.abspath(args["PROJ_DIR"])
-    if not os.path.isdir(proj_dir):
-        msg("Error: Project dir '{}' does not exists!".format(proj_dir))
-        return 1
+    try:
+        generate(args)
+        sys.exit(0)
+    except Error as e:
+        msg(str(e))
+        sys.exit(1)
 
-    with input_file(input_path) as build_log:
-        msg("## Processing build commands from '{}'".format('std input' if input_path is None else input_path))
-        result = parse_build_log(build_log, proj_dir, include_path_prefix, exclude_list, verbose)
-        output_str = 'std output' if output_path is None else output_path
-        msg("## Writing compilation database with {} entries to {}".format(len(result.compdb), output_str))
-        generate_compile_db_file(result.compdb, output_path, pretty_output)
-        msg("## Done.")
-
-    return 0
-
-
-def generate_compile_db_file(compile_db, output_path, indent=False):
-    with output_file(output_path) as output:
-        json.dump(compile_db, output, indent=indent)
-        output.write(os.linesep)
-
-
-def _main():
-    sys.exit(generate(sys.argv[1:]))
 
 # ex: ts=2 sw=4 et filetype=python
 
