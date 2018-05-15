@@ -21,22 +21,16 @@
 import argparse
 import json
 import os
-import os.path
 import sys
 
 from compiledb.parser import parse_build_log, Error
 from compiledb.utils import msg, input_file, output_file
 
 
-def generate(args):
-    include_prefix = args["include_prefix"]
-    output_path = args["output"]
-    input_path = args["input"]
-    exclude_list = args["exclude"]
-    verbose = args["verbose"]
-    pretty_output = True
+def generate_json_compdb(input_path, output_path, proj_dir=os.getcwd(),
+                         verbose=False, force=False, include_prefix=None,
+                         exclude_list=[], pretty_output=True):
 
-    proj_dir = os.path.abspath(args["PROJ_DIR"])
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
@@ -68,21 +62,21 @@ def _main():
                         help="Show output from build process")
     parser.add_argument("-f", "--force", action="store_true",
                         help="Overwrite the file if it exists.")
-    parser.add_argument("-o", "--output", help="Save the config file as OUTPUT. " +
-                        "default: std output")
-    parser.add_argument("-i", "--input", help="File path to be used as input. " +
-                        "It must contain the make output. Default: stdin.")
+    parser.add_argument("-o", "--output", dest='output_path', help="Save the config " +
+                        "file as OUTPUT. Default: std output")
+    parser.add_argument("-i", "--input", dest='input_path', help="File path to be " +
+                        "used as input. It must contain the make output. Default: stdin.")
     parser.add_argument("-p", "--include-prefix", help="Prefix path to be " +
                         "concatenated to each include path flag. Default: $PWD")
-    parser.add_argument("-e", "--exclude", default=[], nargs='+', help="Space-separated " +
-                        "list of regular expressions to exclude files.")
-    parser.add_argument("PROJ_DIR", nargs='?', default=os.getcwd(),
-                        help="The root directory of the project.")
+    parser.add_argument("-e", "--exclude", default=[], nargs='+', dest='exclude_list',
+                        help="Space-separated list of regular expressions to exclude files.")
+    parser.add_argument('proj_dir', metavar='PROJ_DIR', nargs='?', default=os.getcwd(),
+                        help="The root directory of the project. Default: $PWD")
 
     args = vars(parser.parse_args())
 
     try:
-        generate(args)
+        generate_json_compdb(**args)
         sys.exit(0)
     except Error as e:
         msg(str(e))
