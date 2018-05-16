@@ -40,7 +40,7 @@ setup(
     python_requires='>=2.7',
     entry_points={
         'console_scripts': [
-            'compiledb=compiledb.generator:_main',
+            'compiledb=compiledb:cli',
         ],
     },
     project_urls={
