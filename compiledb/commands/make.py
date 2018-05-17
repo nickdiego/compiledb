@@ -1,8 +1,16 @@
 import click
 from subprocess import call, PIPE, Popen
-from sys import exit, stdout, stderr
+from sys import exit, stdout, stderr, version_info
 
 from compiledb import generate
+
+
+if version_info[0] >= 3:  # Python 3
+    def popen(cmd, encoding='utf-8', **kwargs):
+        return Popen(cmd, **kwargs, encoding=encoding)
+else:  # Python 2
+    def popen(cmd, encoding='utf-8', **kwargs):
+        return Popen(cmd, **kwargs)
 
 
 @click.command(name='make', context_settings=dict(ignore_unknown_options=True))
@@ -28,7 +36,8 @@ def command(ctx, make_cmd, make_args):
             exit(1)
 
     cmd = [make_cmd, logging_mode_flags] + list(make_args)
-    pipe = Popen(cmd, stdout=PIPE, encoding='utf-8')
+    pipe = popen(cmd, stdout=PIPE, encoding='utf-8')
     options.infile = pipe.stdout
     generate(**vars(options))
     pipe.wait()
+
