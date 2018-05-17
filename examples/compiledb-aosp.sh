@@ -21,14 +21,13 @@
 set -e
 
 scriptdir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-make_cmd=${scriptdir}/compiledb-gen-make
 
 VERBOSE=0
 
 show_help() {
     cat << EOF
 
-usage: compiledb-gen-aosp [-h] [-v] [-f] [-o OUTPUT] [-i INPUT] [-p INCLUDE_PREFIX] MODULE
+usage: compiledb-aosp [-h] [-v] [-f] [-o OUTPUT] [-i INPUT] [-p INCLUDE_PREFIX] MODULE
 
  Generates compilation database file for an AOSP (Android Open Source Project) modules.
 
@@ -115,11 +114,11 @@ make_opts=( "-j${num_cpus}" -C "$aosp_root" -f 'build/core/main.mk' )
 parser_opts=(
     "--output=${comp_db}"
     "--include-prefix=${aosp_root_host}"
-    "${aosp_root}" )
+    "--build-dir" "${aosp_root}" )
 
 (( VERBOSE )) && parser_opts+=( --verbose )
 
 echo "# Generating compilation database file $(readlink -f $comp_db)"
-$make_cmd "${make_opts[@]}" "${module_opts[@]}" -- "${parser_opts[@]}" 2>$build_err
+compiledb "${parser_opts[@]}" make "${make_opts[@]}" "${module_opts[@]}" 2>$build_err
 
 # ex: ts=2 sw=4 et filetype=sh

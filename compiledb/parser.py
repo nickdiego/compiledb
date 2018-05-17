@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #
 #   compiledb-generator: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
@@ -21,7 +21,6 @@
 import os.path
 import re
 
-from compiledb.utils import msg
 
 class ParsingResult(object):
     def __init__(self):
@@ -31,7 +30,15 @@ class ParsingResult(object):
 
     def __str__(self):
         return "Line count: {}, Skipped: {}, Entries: {}".format(
-                self.count, self.skipped, len(self.compdb))
+            self.count, self.skipped, len(self.compdb))
+
+
+class Error(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return "Error: {}".format(self.msg)
 
 
 def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
@@ -71,8 +78,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         try:
             exclude_regex = re.compile("|".join(exclude_list))
         except:
-            msg('Error: Regular expression not valid: {}'.format(regex_pattern))
-            return None
+            raise Error('Regular expression not valid: {}'.format(exclude_list))
 
     file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
@@ -118,7 +124,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             if(word[0] != '-' or not flags_whitelist.match(word)):
                 continue
 
-            word = word.decode('unicode_escape')
+            word = unescape(word)
 
             # include arguments for this option, if there are any, as a tuple
             if(i != len(words) - 1 and word in filename_flags and words[i + 1][0] != '-'):
@@ -138,18 +144,19 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         if filepath and exclude_regex and exclude_regex.match(filepath):
             if verbose:
-                msg('excluding file {}'.format(filepath))
+                print('excluding file {}'.format(filepath))
             filepath = None
 
         if filepath is None:
-            # msg("Empty file name. Ignoring: {}".format(line))
+            if verbose:
+                print("Empty file name. Ignoring: {}".format(line))
             result.skipped += 1
             continue
 
         # add entry to database
         # TODO performance: serialize to json file here?
         if (verbose):
-            msg("args={} --> {}".format(len(arguments), filepath))
+            print("args={} --> {}".format(len(arguments), filepath))
 
         arguments.append(filepath)
         result.compdb.append({
@@ -184,5 +191,8 @@ def unbalanced_quotes(s):
             double += 1
     return (single % 2 == 1 or double % 2 == 1)
 
+
+def unescape(s):
+    return s.encode().decode('unicode_escape')
 
 # ex: ts=2 sw=4 et filetype=python
