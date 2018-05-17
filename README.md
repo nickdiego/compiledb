@@ -52,14 +52,6 @@ $ compiledb -i build-log.txt
 
 ## Testing / Contributing
 
-<<<<<<< HEAD
-I've implemented it basically because I needed to index some AOSP's
-modules for navigating and studying purposes (after having no satisfatory results with
-current tools such as [YCM-Generator][ycm] and [Bear][bear]). So I've reworked
-YCM-Generator, which resulted in `compiledb-gen-parser` and used successfully to
-generate compilation database for some AOSP modules in ~1min running in a [Docker][docker]
-container and then some great tools may be used for studying and analysis purposes, such as:
-=======
 I've implemented it basically because I needed to index some AOSP's modules for navigating
 and studying purposes (after having no satisfatory results with current tools such as
 [YCM-Generator][ycm] and [Bear][bear]). So I've reworked YCM-Generator, which resulted in
@@ -67,7 +59,6 @@ and studying purposes (after having no satisfatory results with current tools su
 modules in ~1min running in a [Docker][docker] container and then I've been able to use some
 great tools such as _Vim + [YouCompleteMe][ycm] + [rtags][rtags] + [chromatica.nvim][chrom]_
 with the codebase.
->>>>>>> 59850f3e614d... Update README with the CLI proposed to 1.0 version
 
 - [Vim][vim] + [YouCompleteMe][ycm] + [rtags][rtags] + [chromatica.nvim][chrom]
 - [Neovim][neovim] + [LanguageClient-neovim][lsp] + [cquery][cquery] + [deoplete][deoplete]
