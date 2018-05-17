@@ -25,6 +25,7 @@ import os
 import sys
 
 from . import generate
+from .commands import make
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -33,13 +34,15 @@ class Options(object):
     """ Simple data class used to store command line options
     shared by all compiledb subcommands"""
 
-    def __init__(self, infile, outfile, build_dir, inc_prefix, exclude_list, verbose):
+    def __init__(self, infile, outfile, build_dir, inc_prefix,
+                 exclude_list, no_build, verbose):
         self.infile = infile
         self.outfile = outfile
         self.build_dir = build_dir
         self.inc_prefix = inc_prefix
         self.exclude_list = exclude_list
         self.verbose = verbose
+        self.no_build = no_build
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -55,15 +58,22 @@ class Options(object):
               help="Path to be used as include base directory")
 @click.option('-e', '--exclude', 'exclude_list', multiple=True,
               help="Regular expressions to exclude files.")
+@click.option('-n', '--no-build', is_flag=True, default=False,
+              help='Only generates compilation db file.')
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help='Print verbose messages.')
 @click.pass_context
-def cli(ctx, infile, outfile, build_dir, inc_prefix, exclude_list, verbose):
+def cli(ctx, infile, outfile, build_dir, inc_prefix, exclude_list, no_build, verbose):
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
     assert not sys.platform.startswith("win32")
-    ctx.obj = Options(infile, outfile, build_dir, inc_prefix, exclude_list, verbose)
     if ctx.invoked_subcommand is None:
         generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose)
+    else:
+        ctx.obj = Options(infile, outfile, build_dir, inc_prefix, exclude_list,
+                          no_build, verbose)
 
+
+# Add subcommands
+cli.add_command(make.command)

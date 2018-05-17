@@ -46,7 +46,7 @@ def write_json_compdb(compdb, outstream=None, verbose=False,
     outstream.write(os.linesep)
 
 
-def generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose):
+def generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose, **kwargs):
     try:
         r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose,
                                  include_prefix=inc_prefix, exclude_list=exclude_list)
