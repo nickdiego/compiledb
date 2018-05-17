@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master.svg?style=svg)](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master)
 
-Tool for generating [clang/LLVM's JSON Compilation Database][compdb] file for GNU
+Tool for generating [Clang's JSON Compilation Database][compdb] file for GNU
 `make`-based build systems.
 
 It's aimed mainly at non-cmake (cmake already generates compilation database)
@@ -18,7 +18,7 @@ approach.
 ```
 # pip install compiledb
 ```
-- _Supports Python 2 and 3 (tested mainly with 2.7 and 3.6 versions)_
+- _Supports Python 2.x and 3.x (for now, tested only with 2.7 and 3.6 versions)_
 - For bash completion support, add the content of `sh-completion/compiledb.bash` file
   to your `.bashrc` file, for example.
 - _ZSH completion coming soon :)_
@@ -32,13 +32,21 @@ command, resulting in a command-line interface similar to [Bear][bear].
 To generate `compile_commands.json` file using compiledb-generator's "make wrapper" script,
 executing Makefile target `all`:
 ```bash
-$ compiledb make all -j4
+$ compiledb make
 ```
 
-Generate `compile_commands.json` file using compiledb-generator's "make wrapper" script,
-using `custom_makefile.mk` as main Makefile:
+`compiledb` forwards all the options/arguments passed after `make` subcommand to GNU Make
+command, so one can, for example, generate `compile_commands.json` using `custom_makefile.mk`
+as main makefile in the directory `build`:
 ```bash
-$ compiledb make -f custom_makefile.mk
+$ compiledb make -f custom_makefile.mk -C build
+```
+
+Even though it `compiledb make` by default generate the compilation database and runs the
+actual build command requested (acting as a make wrapper), the build step be skipped using
+the `-n`/`--no-build` options.
+```bash
+$ compiledb -n make
 ```
 
 Also, `compiledb` base command can be used to parse compile commands from an arbitrary text
@@ -52,7 +60,7 @@ $ compiledb -i build-log.txt
 
 ## Testing / Contributing
 
-I've implemented it basically because I needed to index some AOSP's modules for navigating
+I've implemented it basically because I needed to index some [AOSP][aosp]'s modules for navigating
 and studying purposes (after having no satisfatory results with current tools such as
 [YCM-Generator][ycm] and [Bear][bear]). So I've reworked YCM-Generator, which resulted in
 `compiledb-gen-parser` and used successfully to generate compilation database for some AOSP
