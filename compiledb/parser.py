@@ -21,8 +21,6 @@
 import os.path
 import re
 
-from compiledb.utils import msg, unescape
-
 
 class ParsingResult(object):
     def __init__(self):
@@ -146,18 +144,19 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         if filepath and exclude_regex and exclude_regex.match(filepath):
             if verbose:
-                msg('excluding file {}'.format(filepath))
+                print('excluding file {}'.format(filepath))
             filepath = None
 
         if filepath is None:
-            # msg("Empty file name. Ignoring: {}".format(line))
+            if verbose:
+                print("Empty file name. Ignoring: {}".format(line))
             result.skipped += 1
             continue
 
         # add entry to database
         # TODO performance: serialize to json file here?
         if (verbose):
-            msg("args={} --> {}".format(len(arguments), filepath))
+            print("args={} --> {}".format(len(arguments), filepath))
 
         arguments.append(filepath)
         result.compdb.append({
@@ -192,5 +191,8 @@ def unbalanced_quotes(s):
             double += 1
     return (single % 2 == 1 or double % 2 == 1)
 
+
+def unescape(s):
+    return s.encode().decode('unicode_escape')
 
 # ex: ts=2 sw=4 et filetype=python

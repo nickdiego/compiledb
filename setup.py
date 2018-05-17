@@ -32,7 +32,9 @@ setup(
     ],
     keywords='compilation-database clang c cpp makefile rtags completion',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=[],
+    install_requires=[
+        'click'
+    ],
     extras_require={
         'dev': [],
         'test': ['pytest'],
@@ -40,7 +42,7 @@ setup(
     python_requires='>=2.7',
     entry_points={
         'console_scripts': [
-            'compiledb=compiledb:cli',
+            'compiledb=compiledb.cli:cli',
         ],
     },
     project_urls={

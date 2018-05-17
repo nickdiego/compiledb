@@ -19,67 +19,42 @@
 #
 # ex: ts=2 sw=4 et filetype=python
 
-import argparse
 import json
 import os
 import sys
 
 from compiledb.parser import parse_build_log, Error
-from compiledb.utils import msg, input_file, output_file
 
 
-def generate_json_compdb(input_path, output_path, proj_dir=os.getcwd(),
-                         verbose=False, force=False, include_prefix=None,
-                         exclude_list=[], pretty_output=True):
-
+def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False,
+                         include_prefix=None, exclude_list=[]):
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
-    with input_file(input_path) as build_log:
-        msg("## Processing build commands from '{}'".format(
-            'std input' if input_path is None else input_path))
-        result = parse_build_log(build_log, proj_dir, include_prefix,
-                                 exclude_list, verbose)
-
-        output_str = 'std output' if output_path is None else output_path
-        msg("## Writing compilation database with {} entries to {}".format(
-            len(result.compdb), output_str))
-
-        with output_file(output_path) as output:
-            json.dump(result.compdb, output, indent=pretty_output)
-            output.write(os.linesep)
-
-        msg("## Done.")
+    print("## Processing build commands from {}".format(instream.name))
+    result = parse_build_log(instream, proj_dir, include_prefix,
+                             exclude_list, verbose)
+    return result
 
 
-def cli():
-    if(sys.platform.startswith("win32")):
-        msg("Error: Windows is not supported")
+def write_json_compdb(compdb, outstream=None, verbose=False,
+                      force=False, pretty_output=True):
+    print("## Writing compilation database with {} entries to {}".format(
+        len(compdb), outstream.name))
 
-    desc = "Process build log/commands and generates compilation database for it."
-    parser = argparse.ArgumentParser(description=desc)
+    json.dump(compdb, outstream, indent=pretty_output)
+    outstream.write(os.linesep)
 
-    parser.add_argument("-v", "--verbose", default=False, action="store_true",
-                        help="Show output from build process")
-    parser.add_argument("-f", "--force", action="store_true",
-                        help="Overwrite the file if it exists.")
-    parser.add_argument("-o", "--output", dest='output_path', help="Save the config " +
-                        "file as OUTPUT. Default: std output")
-    parser.add_argument("-i", "--input", dest='input_path', help="File path to be " +
-                        "used as input. It must contain the make output. Default: stdin.")
-    parser.add_argument("-p", "--include-prefix", help="Prefix path to be " +
-                        "concatenated to each include path flag. Default: $PWD")
-    parser.add_argument("-e", "--exclude", default=[], nargs='+', dest='exclude_list',
-                        help="Space-separated list of regular expressions to exclude files.")
-    parser.add_argument('proj_dir', metavar='PROJ_DIR', nargs='?', default=os.getcwd(),
-                        help="The root directory of the project. Default: $PWD")
 
-    args = vars(parser.parse_args())
-
+def generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose):
     try:
-        generate_json_compdb(**args)
+        r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose,
+                                 include_prefix=inc_prefix, exclude_list=exclude_list)
+        write_json_compdb(r.compdb, outfile, verbose=verbose)
+        print("## Done.")
         sys.exit(0)
     except Error as e:
-        msg(str(e))
+        print(str(e))
         sys.exit(1)
+
 
