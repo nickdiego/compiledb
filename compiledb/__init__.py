@@ -56,5 +56,3 @@ def generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose, **kw
     except Error as e:
         print(str(e))
         sys.exit(1)
-
-

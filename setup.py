@@ -4,22 +4,23 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
+about = {}
+with open(path.join(here, 'compiledb', '__version__.py'), 'r', 'utf-8') as f:
+    exec(f.read(), about)
+
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-with open(path.join(here, 'VERSION')) as version_file:
-    version = version_file.read().strip()
-
 setup(
-    name='compiledb',
-    version=version,
-    description='Tool for generating LLVM Compilation Database files for make-based build systems.',
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__description__'],
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/nickdiego/compiledb-generator',
-    author='Nick Yamane',
-    author_email='nick@diegoyam.com',
-    license='GPLv3',
+    author=about['__author__'],
+    author_email=about['__author_email__'],
+    url=about['__url__'],
+    license=about['__license__'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:2.7-jessie
+      - image: circleci/python:3.6-jessie
 
     working_directory: ~/repo
 
@@ -14,23 +14,25 @@ jobs:
           - v1-dependencies-{{ checksum "requirements-devel.txt" }}
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             mkdir -p ./venv
             virtualenv ./venv
             source venv/bin/activate
+            pip install tox
             pip install -r requirements-devel.txt
 
       - save_cache:
           paths:
             - ./venv
+            - ./.tox
           key: v1-dependencies-{{ checksum "requirements-devel.txt" }}
 
       - run:
-          name: run tests
+          name: Run tests
           command: |
             source venv/bin/activate
-            pytest --junitxml=test-report.xml
+            tox
 
       - store_artifacts:
           path: test-report.xml
