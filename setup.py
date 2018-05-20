@@ -34,7 +34,8 @@ setup(
     keywords='compilation-database clang c cpp makefile rtags completion',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=[
-        'click'
+        'click',
+        'bashlex'
     ],
     extras_require={
         'dev': [],

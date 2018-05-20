@@ -18,8 +18,20 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import bashlex.parser
+import bashlex.ast
 import os.path
 import re
+import subprocess
+from sys import version_info
+
+
+if version_info[0] >= 3:  # Python 3
+    def run_cmd(cmd, encoding='utf-8', **kwargs):
+        return subprocess.check_output(cmd, encoding=encoding, **kwargs)
+else:  # Python 2
+    def run_cmd(cmd, encoding='utf-8', **kwargs):
+        return subprocess.check_output(cmd, **kwargs)
 
 
 class ParsingResult(object):
@@ -39,6 +51,16 @@ class Error(Exception):
 
     def __str__(self):
         return "Error: {}".format(self.msg)
+
+
+class NodeVisitor(bashlex.ast.nodevisitor):
+    def __init__(self, substitutions):
+        self.substitutions = substitutions
+
+    def visitcommandsubstitution(self, n, command):
+        self.substitutions.append(n)
+        # do not recurse into child nodes
+        return False
 
 
 def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
@@ -101,10 +123,37 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         if (make_enter_dir.match(line)):
             working_dir = enter_dir.group('dir')
             dir_stack.append(working_dir)
+            continue
         elif (make_leave_dir.match(line)):
             dir_stack.pop()
             working_dir = dir_stack[-1]
+            continue
 
+        # Uses bashlex to parse and process sh/bash
+        # substitution commands
+        trees = bashlex.parser.parse(line)
+        subst_nodes = []
+        for tree in trees:
+            visitor = NodeVisitor(subst_nodes)
+            visitor.visit(tree)
+
+        # do replacements from the end so the indicies will be correct
+        subst_nodes.reverse()
+        postprocessed = list(line)
+
+        for node in subst_nodes:
+            start, end = node.command.pos
+            subst_cmd = line[start:end]
+
+            start, end = node.pos
+            out = run_cmd(subst_cmd, shell=True, encoding='utf-8')
+            postprocessed[start:end] = out.strip()
+
+        line = ''.join(postprocessed)
+        # print('---> {}'.format(line))
+
+        # Extract build command arguments of interest
+        # TODO: Refactor to use bashlex + argparse/optparse
         if (cc_compile_regex.match(line)):
             compiler = 'cc'
         elif (cpp_compile_regex.match(line)):
