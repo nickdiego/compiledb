@@ -40,4 +40,3 @@ def command(ctx, make_cmd, make_args):
     options.infile = pipe.stdout
     generate(**vars(options))
     pipe.wait()
-
