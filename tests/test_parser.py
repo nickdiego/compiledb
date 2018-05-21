@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from os import path
+from os import path, getcwd
 
 from compiledb.parser import parse_build_log
 
@@ -42,8 +42,7 @@ def test_empty():
 
 
 def test_trivial_build_command():
-    pwd = '/build'
-
+    pwd = getcwd()
     build_log = ['gcc -o hello.o -c hello.c']
     result = parse_build_log(
         build_log,
@@ -56,7 +55,7 @@ def test_trivial_build_command():
     assert result.skipped == 0
     assert len(result.compdb) == 1
     assert result.compdb[0] == {
-        'directory': '/build',
+        'directory': pwd,
         'file': 'hello.c',
         'arguments': [
             'cc', '-c', 'hello.c'
@@ -65,7 +64,7 @@ def test_trivial_build_command():
 
 
 def test_automake_command():
-    pwd = '/build'
+    pwd = getcwd()
     with input_file('autotools_simple') as build_log:
         result = parse_build_log(
             build_log,
@@ -78,7 +77,7 @@ def test_automake_command():
     assert result.skipped == 0
     assert len(result.compdb) == 1
     assert result.compdb[0] == {
-        'directory': '/build',
+        'directory': pwd,
         'file': './main.c',
         'arguments': [
             'cc',
