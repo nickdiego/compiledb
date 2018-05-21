@@ -26,12 +26,40 @@ import subprocess
 from sys import version_info
 
 
-if version_info[0] >= 3:  # Python 3
-    def run_cmd(cmd, encoding='utf-8', **kwargs):
-        return subprocess.check_output(cmd, encoding=encoding, **kwargs)
-else:  # Python 2
-    def run_cmd(cmd, encoding='utf-8', **kwargs):
-        return subprocess.check_output(cmd, **kwargs)
+# Internal variables used to parse build log entries
+# TODO: Most of them will be removed soon in favor of an
+# bashlex/argparse based parsing (mainly for command line options
+# in to avoid reinventing the wheel and eliminate false positives
+# for compiler, wrappers and their flags
+cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
+cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
+file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
+
+# Leverage make --print-directory option
+make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
+make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
+
+# Flags we want:
+# -includes (-i, -I)
+# -warnings (-Werror), but no assembler, etc. flags (-Wa,-option)
+# -language (-std=gnu99) and standard library (-nostdlib)
+# -defines (-D)
+# -m32 -m64
+flag_patterns = [
+    "-c",
+    "-m.+",
+    "-W[^,]*",
+    "-[iIDF].*",
+    "-std=[a-z0-9+]+",
+    "-(no)?std(lib|inc)",
+    "-D([a-zA-Z0-9_]+)=?(.*)",
+    "--sysroot=?.*"
+]
+flags_whitelist = re.compile("|".join(map("^{}$".format, flag_patterns)))
+
+# Used to only bundle filenames with applicable arguments
+filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot", "--sysroot"]
+invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
 
 
 class ParsingResult(object):
@@ -66,43 +94,12 @@ class NodeVisitor(bashlex.ast.nodevisitor):
 def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
     result = ParsingResult()
 
-    cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
-    cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
-
-    # Leverage make --print-directory option
-    make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
-    make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
-
-    # Flags we want:
-    # -includes (-i, -I)
-    # -warnings (-Werror), but no assembler, etc. flags (-Wa,-option)
-    # -language (-std=gnu99) and standard library (-nostdlib)
-    # -defines (-D)
-    # -m32 -m64
-    flags_whitelist = [
-        "-c",
-        "-m.+",
-        "-W[^,]*",
-        "-[iIDF].*",
-        "-std=[a-z0-9+]+",
-        "-(no)?std(lib|inc)",
-        "-D([a-zA-Z0-9_]+)=?(.*)",
-        "--sysroot=?.*"
-    ]
-    flags_whitelist = re.compile("|".join(map("^{}$".format, flags_whitelist)))
-
-    # Used to only bundle filenames with applicable arguments
-    filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot", "--sysroot"]
-    invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
-
     exclude_regex = None
     if len(exclude_list) > 0:
         try:
             exclude_regex = re.compile("|".join(exclude_list))
         except:
             raise Error('Regular expression not valid: {}'.format(exclude_list))
-
-    file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
     compiler = None
     dir_stack = [proj_dir]
@@ -146,7 +143,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             subst_cmd = line[start:end]
 
             start, end = node.pos
-            out = run_cmd(subst_cmd, shell=True, encoding='utf-8')
+            out = run_cmd(subst_cmd, shell=True, cwd=working_dir)
             postprocessed[start:end] = out.strip()
 
         line = ''.join(postprocessed)
@@ -243,5 +240,13 @@ def unbalanced_quotes(s):
 
 def unescape(s):
     return s.encode().decode('unicode_escape')
+
+
+if version_info[0] >= 3:  # Python 3
+    def run_cmd(cmd, encoding='utf-8', **kwargs):
+        return subprocess.check_output(cmd, encoding=encoding, **kwargs)
+else:  # Python 2
+    def run_cmd(cmd, encoding='utf-8', **kwargs):
+        return subprocess.check_output(cmd, **kwargs)
 
 # ex: ts=2 sw=4 et filetype=python
