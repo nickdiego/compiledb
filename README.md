@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/nickdiego/compiledb-generator.svg?branch=master)](https://travis-ci.org/nickdiego/compiledb-generator)
+[![PyPI version](https://badge.fury.io/py/compiledb.svg)](https://badge.fury.io/py/compiledb)
 
 # Compilation Database Generator
 
