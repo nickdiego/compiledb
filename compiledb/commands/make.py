@@ -7,7 +7,7 @@ from compiledb import generate
 
 if version_info[0] >= 3:  # Python 3
     def popen(cmd, encoding='utf-8', **kwargs):
-        return Popen(cmd, **kwargs, encoding=encoding)
+        return Popen(cmd, encoding=encoding, **kwargs)
 else:  # Python 2
     def popen(cmd, encoding='utf-8', **kwargs):
         return Popen(cmd, **kwargs)

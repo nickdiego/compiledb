@@ -1,0 +1,1 @@
+gcc -DPACKAGE_NAME=\"hello\" -DPACKAGE_VERSION=\"1.0.0\" -DSTDC_HEADERS=1 -I. -I../../src/libhello -c -o hello_world1-main.o `test -f 'main.c' || echo './'`main.c
