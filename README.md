@@ -1,6 +1,6 @@
-# Compilation Database Generator
+[![Build Status](https://travis-ci.org/nickdiego/compiledb-generator.svg?branch=master)](https://travis-ci.org/nickdiego/compiledb-generator)
 
-[![CircleCI](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master.svg?style=svg)](https://circleci.com/gh/nickdiego/compiledb-generator/tree/master)
+# Compilation Database Generator
 
 Tool for generating [Clang's JSON Compilation Database][compdb] file for GNU
 `make`-based build systems.
