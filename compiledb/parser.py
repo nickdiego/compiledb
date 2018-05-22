@@ -70,7 +70,7 @@ class ParsingResult(object):
 
     def __str__(self):
         return "Line count: {}, Skipped: {}, Entries: {}".format(
-            self.count, self.skipped, len(self.compdb))
+            self.count, self.skipped, str(self.compdb))
 
 
 class Error(Exception):
@@ -121,9 +121,20 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             working_dir = enter_dir.group('dir')
             dir_stack.append(working_dir)
             continue
-        elif (make_leave_dir.match(line)):
+        if (make_leave_dir.match(line)):
             dir_stack.pop()
             working_dir = dir_stack[-1]
+            continue
+
+        # Check if it looks like an entry of interest and
+        # and try to determine the compiler
+        # TODO: Refactor to use bashlex + argparse/optparse
+        if (cc_compile_regex.match(line)):
+            compiler = 'cc'
+        elif (cpp_compile_regex.match(line)):
+            compiler = 'c++'
+        else:
+            result.skipped += 1
             continue
 
         # Uses bashlex to parse and process sh/bash
@@ -147,21 +158,12 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             postprocessed[start:end] = out.strip()
 
         line = ''.join(postprocessed)
-        # print('---> {}'.format(line))
 
-        # Extract build command arguments of interest
-        # TODO: Refactor to use bashlex + argparse/optparse
-        if (cc_compile_regex.match(line)):
-            compiler = 'cc'
-        elif (cpp_compile_regex.match(line)):
-            compiler = 'c++'
-        else:
-            continue
-
+        # Extract the other options/arguments of interest
+        # for this entry
         arguments = [compiler]
         words = split_cmd_line(line)[1:]
         filepath = None
-        result.count += 1
 
         for (i, word) in enumerate(words):
             if (file_regex.match(word)):
@@ -198,6 +200,8 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
                 print("Empty file name. Ignoring: {}".format(line))
             result.skipped += 1
             continue
+        else:
+            result.count += 1
 
         # add entry to database
         # TODO performance: serialize to json file here?
