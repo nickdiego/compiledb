@@ -30,6 +30,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Operating System :: OS Independent'
     ],
     keywords='compilation-database clang c cpp makefile rtags completion',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
