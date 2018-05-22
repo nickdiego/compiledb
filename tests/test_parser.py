@@ -63,6 +63,41 @@ def test_trivial_build_command():
     }
 
 
+def test_parse_with_non_build_cmd_entries():
+    pwd = getcwd()
+    build_log = [
+        'random build log message..\n',
+        'gcc -c valid.c\n',
+        'some other random build log message with g++ or gcc included.\n',
+        '\n',
+        '',
+        'g++ -c valid2.cc\n',
+    ]
+    result = parse_build_log(
+        build_log,
+        proj_dir=pwd,
+        inc_prefix=None,
+        exclude_list=[],
+        verbose=False)
+
+    assert result.count == 2
+    assert result.skipped == 4
+    assert len(result.compdb) == 2
+    assert result.compdb == [{
+        'directory': pwd,
+        'file': 'valid.c',
+        'arguments': [
+            'cc', '-c', 'valid.c'
+        ]
+    }, {
+        'directory': pwd,
+        'file': 'valid2.cc',
+        'arguments': [
+            'c++', '-c', 'valid2.cc'
+        ]
+    }]
+
+
 def test_automake_command():
     pwd = getcwd()
     with input_file('autotools_simple') as build_log:
