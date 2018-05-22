@@ -19,7 +19,7 @@ approach.
 ```
 # pip install compiledb
 ```
-- _Supports Python 2.x and 3.x (for now, tested only with 2.7 and 3.6 versions)_
+- Supports Python 2.x and 3.x (for now, tested only with 2.7 and 3.6 versions)
 - For bash completion support, add the content of `sh-completion/compiledb.bash` file
   to your `.bashrc` file, for example.
 - _ZSH completion coming soon :)_
@@ -37,26 +37,32 @@ $ compiledb make
 ```
 
 `compiledb` forwards all the options/arguments passed after `make` subcommand to GNU Make
-command, so one can, for example, generate `compile_commands.json` using `custom_makefile.mk`
-as main makefile in the directory `build`:
+command, so one can, for example, generate `compile_commands.json` using `core/main.mk`
+as main makefile (`-f` flag), starting the build from `build` directory (`-C` flag):
 ```bash
-$ compiledb make -f custom_makefile.mk -C build
+$ compiledb make -f core/main.mk -C build
 ```
 
-Even though it `compiledb make` by default generate the compilation database and runs the
-actual build command requested (acting as a make wrapper), the build step be skipped using
-the `-n`/`--no-build` options.
+Even though, by default, `compiledb make` generates the compilation database and runs the
+actual build command requested (acting as a make wrapper), the build step can be skipped using
+the `-n` or `--no-build` options.
 ```bash
 $ compiledb -n make
 ```
 
 Also, `compiledb` base command can be used to parse compile commands from an arbitrary text
-file (or stdin), assuming it has a build log, and generates the JSON Compilation database.
+file (or stdin), assuming it has a build log (ideally generated using `make -Bnwk` command),
+and generates the JSON Compilation database.
 
-For example, to parse a build log file and prints the compilation database to `compile_commands.json`
-file, use the following command.
+For example, to generate the compilation database  from `build-log.txt` file, use the following
+command.
 ```bash
-$ compiledb -i build-log.txt
+$ compiledb --parse build-log.txt
+```
+
+Or even, to pipe make's output and print the compilation database to the standard output:
+```bash
+$ make -Bnwk | compiledb -o-
 ```
 
 ## Testing / Contributing
@@ -66,8 +72,7 @@ and studying purposes (after having no satisfatory results with current tools su
 [YCM-Generator][ycm] and [Bear][bear]). So I've reworked YCM-Generator, which resulted in
 `compiledb-gen-parser` and used successfully to generate compilation database for some AOSP
 modules in ~1min running in a [Docker][docker] container and then I've been able to use some
-great tools such as _Vim + [YouCompleteMe][ycm] + [rtags][rtags] + [chromatica.nvim][chrom]_
-with the codebase.
+great tools such as:
 
 - [Vim][vim] + [YouCompleteMe][ycm] + [rtags][rtags] + [chromatica.nvim][chrom]
 - [Neovim][neovim] + [LanguageClient-neovim][lsp] + [cquery][cquery] + [deoplete][deoplete]
