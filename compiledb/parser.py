@@ -183,12 +183,12 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         if filepath and exclude_regex and exclude_regex.match(filepath):
             if verbose:
-                print('excluding file {}'.format(filepath))
+                print('[INFO] Line {}: excluding file {}'.format(lineno, filepath))
             filepath = None
 
         if filepath is None:
             if verbose:
-                print("Empty file name. Ignoring: {}".format(line))
+                print("[INFO] Line {}: Empty file name. Ignoring: {}".format(lineno, line.strip()))
             result.skipped += 1
             continue
         else:
