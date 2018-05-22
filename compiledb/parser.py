@@ -104,9 +104,11 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
     compiler = None
     dir_stack = [proj_dir]
     working_dir = proj_dir
+    lineno = 0
 
     # Process build log
     for line in build_log:
+        lineno += 1
         # Concatenate line if need
         accumulate_line = line
         while (line.endswith('\\\n')):
@@ -137,27 +139,16 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             result.skipped += 1
             continue
 
-        # Uses bashlex to parse and process sh/bash
-        # substitution commands
-        trees = bashlex.parser.parse(line)
-        subst_nodes = []
-        for tree in trees:
-            visitor = NodeVisitor(subst_nodes)
-            visitor.visit(tree)
-
-        # do replacements from the end so the indicies will be correct
-        subst_nodes.reverse()
-        postprocessed = list(line)
-
-        for node in subst_nodes:
-            start, end = node.command.pos
-            subst_cmd = line[start:end]
-
-            start, end = node.pos
-            out = run_cmd(subst_cmd, shell=True, cwd=working_dir)
-            postprocessed[start:end] = out.strip()
-
-        line = ''.join(postprocessed)
+        try:
+            # Uses bashlex to parse and process sh/bash
+            # substitution commands
+            line = preprocess_cmd(line, working_dir)
+        except Exception as err:
+            if verbose:
+                print(('[INFO] Line {}: Failed to parse build command '
+                       '[Details: {}]').format(lineno, str(err)))
+            result.skipped += 1
+            continue
 
         # Extract the other options/arguments of interest
         # for this entry
@@ -192,12 +183,12 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         if filepath and exclude_regex and exclude_regex.match(filepath):
             if verbose:
-                print('excluding file {}'.format(filepath))
+                print('[INFO] Line {}: excluding file {}'.format(lineno, filepath))
             filepath = None
 
         if filepath is None:
             if verbose:
-                print("Empty file name. Ignoring: {}".format(line))
+                print("[INFO] Line {}: Empty file name. Ignoring: {}".format(lineno, line.strip()))
             result.skipped += 1
             continue
         else:
@@ -216,6 +207,31 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         })
 
     return result
+
+
+def preprocess_cmd(line, working_dir):
+    """Uses bashlex to parse and process sh/bash substitution commands.
+    May result in a parsing exception for invalid commands."""
+
+    trees = bashlex.parser.parse(line)
+    subst_nodes = []
+    for tree in trees:
+        visitor = NodeVisitor(subst_nodes)
+        visitor.visit(tree)
+
+    # do replacements from the end so the indicies will be correct
+    subst_nodes.reverse()
+    postprocessed = list(line)
+
+    for node in subst_nodes:
+        start, end = node.command.pos
+        subst_cmd = line[start:end]
+
+        start, end = node.pos
+        out = run_cmd(subst_cmd, shell=True, cwd=working_dir)
+        postprocessed[start:end] = out.strip()
+
+    return ''.join(postprocessed)
 
 
 def split_cmd_line(line):

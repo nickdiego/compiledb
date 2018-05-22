@@ -73,6 +73,13 @@ def test_parse_with_non_build_cmd_entries():
         '',
         'g++ -c valid2.cc\n',
     ]
+    # These ones will reach the bashlex parsing code and
+    # would generate a parsing exception
+    # https://github.com/nickdiego/compiledb-generator/issues/38
+    build_log += [
+        'checking for gcc... (cached) gcc\n',
+        'checking whether gcc accepts -g... (cached) yes\n'
+    ]
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
@@ -81,7 +88,7 @@ def test_parse_with_non_build_cmd_entries():
         verbose=False)
 
     assert result.count == 2
-    assert result.skipped == 4
+    assert result.skipped == 6
     assert len(result.compdb) == 2
     assert result.compdb == [{
         'directory': pwd,
