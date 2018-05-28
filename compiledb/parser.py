@@ -53,7 +53,8 @@ flag_patterns = [
     "-std=[a-z0-9+]+",
     "-(no)?std(lib|inc)",
     "-D([a-zA-Z0-9_]+)=?(.*)",
-    "--sysroot=?.*"
+    "--sysroot=?.*",
+    "-f.*"
 ]
 flags_whitelist = re.compile("|".join(map("^{}$".format, flag_patterns)))
 
