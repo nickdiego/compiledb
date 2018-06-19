@@ -39,24 +39,6 @@ file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
 make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
 
-# Flags we want:
-# -includes (-i, -I)
-# -warnings (-Werror), but no assembler, etc. flags (-Wa,-option)
-# -language (-std=gnu99) and standard library (-nostdlib)
-# -defines (-D)
-# -m32 -m64
-flag_patterns = [
-    "-c",
-    "-m.+",
-    "-W[^,]*",
-    "-[iIDF].*",
-    "-std=[a-z0-9+]+",
-    "-(no)?std(lib|inc)",
-    "-D([a-zA-Z0-9_]+)=?(.*)",
-    "--sysroot=?.*"
-]
-flags_whitelist = re.compile("|".join(map("^{}$".format, flag_patterns)))
-
 # Used to only bundle filenames with applicable arguments
 filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot", "--sysroot"]
 invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
@@ -159,9 +141,6 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         for (i, word) in enumerate(words):
             if (file_regex.match(word)):
                 filepath = word
-
-            if(word[0] != '-' or not flags_whitelist.match(word)):
-                continue
 
             word = unescape(word)
 
