@@ -83,7 +83,6 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         except:
             raise Error('Regular expression not valid: {}'.format(exclude_list))
 
-    compiler = None
     dir_stack = [proj_dir]
     working_dir = proj_dir
     lineno = 0
@@ -113,11 +112,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         # Check if it looks like an entry of interest and
         # and try to determine the compiler
         # TODO: Refactor to use bashlex + argparse/optparse
-        if (cc_compile_regex.match(line)):
-            compiler = 'cc'
-        elif (cpp_compile_regex.match(line)):
-            compiler = 'c++'
-        else:
+        if not cc_compile_regex.match(line) and not cpp_compile_regex.match(line):
             result.skipped += 1
             continue
 
@@ -134,8 +129,8 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         # Extract the other options/arguments of interest
         # for this entry
-        arguments = [compiler]
-        words = split_cmd_line(line)[1:]
+        arguments = []
+        words = split_cmd_line(line)
         filepath = None
 
         for (i, word) in enumerate(words):
