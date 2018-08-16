@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/nickdiego/compiledb-generator.svg?style=svg)](https://circleci.com/gh/nickdiego/compiledb-generator)
 [![Build Status](https://travis-ci.com/nickdiego/compiledb-generator.svg?branch=master)](https://travis-ci.com/nickdiego/compiledb-generator)
 [![PyPI version](https://badge.fury.io/py/compiledb.svg)](https://badge.fury.io/py/compiledb)
 
