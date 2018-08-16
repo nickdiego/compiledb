@@ -150,11 +150,15 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
 
         result.compdb.append({
             'directory': working_dir,
-            'command': line,
+            'command': unescape(line),
             'file': filepath,
         })
 
     return result
+
+
+def unescape(s):
+    return s.encode().decode('unicode_escape')
 
 
 def preprocess_cmd(line, working_dir):

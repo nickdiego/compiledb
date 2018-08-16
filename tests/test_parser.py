@@ -57,9 +57,7 @@ def test_trivial_build_command():
     assert result.compdb[0] == {
         'directory': pwd,
         'file': 'hello.c',
-        'arguments': [
-            'cc', '-c', 'hello.c'
-        ]
+        'command': 'gcc -o hello.o -c hello.c'
     }
 
 
@@ -93,15 +91,11 @@ def test_parse_with_non_build_cmd_entries():
     assert result.compdb == [{
         'directory': pwd,
         'file': 'valid.c',
-        'arguments': [
-            'cc', '-c', 'valid.c'
-        ]
+        'command': 'gcc -c valid.c',
     }, {
         'directory': pwd,
         'file': 'valid2.cc',
-        'arguments': [
-            'c++', '-c', 'valid2.cc'
-        ]
+        'command': 'g++ -c valid2.cc'
     }]
 
 
@@ -121,16 +115,17 @@ def test_automake_command():
     assert result.compdb[0] == {
         'directory': pwd,
         'file': './main.c',
-        'arguments': [
-            'cc',
+        'command': ' '.join([
+            'gcc',
             '-DPACKAGE_NAME="hello"',
             '-DPACKAGE_VERSION="1.0.0"',
             '-DSTDC_HEADERS=1',
             '-I.',
             '-I../../src/libhello',
             '-c',
+            '-o', 'hello_world1-main.o',
             './main.c'
-        ]
+        ])
     }
 
 
