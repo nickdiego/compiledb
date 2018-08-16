@@ -20,7 +20,6 @@
 #
 import bashlex.parser
 import bashlex.ast
-import os.path
 import re
 import subprocess
 from sys import version_info
@@ -38,28 +37,6 @@ file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 # Leverage make --print-directory option
 make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
 make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
-
-# Flags we want:
-# -includes (-i, -I)
-# -warnings (-Werror), but no assembler, etc. flags (-Wa,-option)
-# -language (-std=gnu99) and standard library (-nostdlib)
-# -defines (-D)
-# -m32 -m64
-flag_patterns = [
-    "-c",
-    "-m.+",
-    "-W[^,]*",
-    "-[iIDF].*",
-    "-std=[a-z0-9+]+",
-    "-(no)?std(lib|inc)",
-    "-D([a-zA-Z0-9_]+)=?(.*)",
-    "--sysroot=?.*"
-]
-flags_whitelist = re.compile("|".join(map("^{}$".format, flag_patterns)))
-
-# Used to only bundle filenames with applicable arguments
-filename_flags = ["-o", "-I", "-isystem", "-iquote", "-include", "-imacros", "-isysroot", "--sysroot"]
-invalid_include_regex = re.compile("(^.*out/.+_intermediates.*$)|(.+/proguard.flags$)")
 
 
 class ParsingResult(object):
@@ -101,7 +78,6 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         except:
             raise Error('Regular expression not valid: {}'.format(exclude_list))
 
-    compiler = None
     dir_stack = [proj_dir]
     working_dir = proj_dir
     lineno = 0
@@ -115,7 +91,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             accumulate_line = accumulate_line[:-2]
             line = next(build_log, '')
             accumulate_line += line
-        line = accumulate_line
+        line = accumulate_line.rstrip()
 
         # Parse directory that make entering/leaving
         enter_dir = make_enter_dir.match(line)
@@ -131,11 +107,7 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         # Check if it looks like an entry of interest and
         # and try to determine the compiler
         # TODO: Refactor to use bashlex + argparse/optparse
-        if (cc_compile_regex.match(line)):
-            compiler = 'cc'
-        elif (cpp_compile_regex.match(line)):
-            compiler = 'c++'
-        else:
+        if not cc_compile_regex.match(line) and not cpp_compile_regex.match(line):
             result.skipped += 1
             continue
 
@@ -150,41 +122,18 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             result.skipped += 1
             continue
 
-        # Extract the other options/arguments of interest
-        # for this entry
-        arguments = [compiler]
-        words = split_cmd_line(line)[1:]
+        words = split_cmd_line(line)
         filepath = None
 
-        for (i, word) in enumerate(words):
+        for word in words:
             if (file_regex.match(word)):
                 filepath = word
 
-            if(word[0] != '-' or not flags_whitelist.match(word)):
-                continue
-
-            word = unescape(word)
-
-            # include arguments for this option, if there are any, as a tuple
-            if(i != len(words) - 1 and word in filename_flags and words[i + 1][0] != '-'):
-                w = words[i + 1]
-                p = w if inc_prefix is None else os.path.join(inc_prefix, w)
-                if not invalid_include_regex.match(p):
-                    arguments.extend([word, p])
-            else:
-                if word.startswith("-I"):
-                    opt = word[0:2]
-                    val = word[2:]
-                    p = val if inc_prefix is None else os.path.join(inc_prefix, val)
-                    if not invalid_include_regex.match(p):
-                        arguments.append(opt + p)
-                else:
-                    arguments.append(word)
-
         if filepath and exclude_regex and exclude_regex.match(filepath):
             if verbose:
-                print('[INFO] Line {}: excluding file {}'.format(lineno, filepath))
-            filepath = None
+                print('[INFO] Line {}: Excluding file {}'.format(lineno, filepath))
+            result.skipped += 1
+            continue
 
         if filepath is None:
             if verbose:
@@ -197,13 +146,12 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
         # add entry to database
         # TODO performance: serialize to json file here?
         if (verbose):
-            print("args={} --> {}".format(len(arguments), filepath))
+            print("args={} --> {}".format(len(line), filepath))
 
-        arguments.append(filepath)
         result.compdb.append({
             'directory': working_dir,
+            'command': line,
             'file': filepath,
-            'arguments': arguments
         })
 
     return result
@@ -256,10 +204,6 @@ def unbalanced_quotes(s):
         elif(c == '"'):
             double += 1
     return (single % 2 == 1 or double % 2 == 1)
-
-
-def unescape(s):
-    return s.encode().decode('unicode_escape')
 
 
 if version_info[0] >= 3:  # Python 3

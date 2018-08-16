@@ -19,9 +19,9 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import cli
+from compiledb import cli
 
 if(__name__ == "__main__"):
-    cli()
+    cli.cli()
 
 # ex: ts=2 sw=4 et filetype=python
