@@ -78,8 +78,8 @@ great tools such as:
 - [Neovim][neovim] + [LanguageClient-neovim][lsp] + [cquery][cquery] + [deoplete][deoplete]
 
 Notice:
-- _Windows not supported yet (at least not tested yet in Cygwin/MinGW)_
-- _Tested only on Linux (Arch Linux) so far_
+- _Windows: tested on Windows 10 with cmd, wsl(Ubuntu), mingw32_
+- _Linux: tested only on Arch Linux so far_
 
 Patches are always welcome :)
 
