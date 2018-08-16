@@ -67,7 +67,6 @@ def cli(ctx, infile, outfile, build_dir, inc_prefix, exclude_list, no_build, ver
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
-    assert not sys.platform.startswith("win32")
     if ctx.invoked_subcommand is None:
         generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose)
     else:
