@@ -129,6 +129,30 @@ def test_automake_command():
     }
 
 
+def test_multiple_commands_per_line():
+    pwd = getcwd()
+    with input_file('multiple_commands_oneline') as build_log:
+        result = parse_build_log(
+            build_log,
+            proj_dir=pwd,
+            inc_prefix=None,
+            exclude_list=[],
+            verbose=False)
+
+    assert result.count == 2
+    assert result.skipped == 0
+    assert len(result.compdb) == 2
+    assert result.compdb[0] == {
+        'directory': pwd,
+        'file': './path/src/hein.cpp',
+        'command': ' '.join([
+            'g++',
+            '-c', '"./path/src/hein.cpp"',
+            '-o', 'out.o'
+        ])
+    }
+
+
 def input_file(relpath):
     relpath = '{}.txt'.format(relpath)
     return open(path.join(data_dir, relpath), 'r')

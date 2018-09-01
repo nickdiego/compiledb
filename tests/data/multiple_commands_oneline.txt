@@ -1,0 +1,2 @@
+if true; then g++ -c "./path/src/`echo -n "hein$(echo -n '.cpp')"`" -o out.o; else echo 'aeeee'; fi
+gcc -c -o main.o main.c || echo 'mucho loko'; if test -d fulano; then echo 'blz fera'; fi
