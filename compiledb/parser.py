@@ -30,8 +30,8 @@ from sys import version_info
 # bashlex/argparse based parsing (mainly for command line options
 # in to avoid reinventing the wheel and eliminate false positives
 # for compiler, wrappers and their flags
-cc_compile_regex = re.compile("(.*-?g?cc )|(.*-?clang )")
-cpp_compile_regex = re.compile("(.*-?[gc]\+\+ )|(.*-?clang\+\+ )")
+cc_compile_regex = re.compile(".*-?g?cc|.*-?clang")
+cpp_compile_regex = re.compile(".*-?[gc]\+\+|.*-?clang\+\+")
 file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
 
 # Leverage make --print-directory option
@@ -58,18 +58,13 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-class NodeVisitor(bashlex.ast.nodevisitor):
-    def __init__(self, substitutions):
-        self.substitutions = substitutions
-
-    def visitcommandsubstitution(self, n, command):
-        self.substitutions.append(n)
-        # do not recurse into child nodes
-        return False
-
-
 def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
     result = ParsingResult()
+
+    def skip_line(cmd, reason):
+        if verbose:
+            print("[INFO] Line {}: {}. Ignoring: '{}'".format(lineno, reason, cmd))
+        result.skipped += 1
 
     exclude_regex = None
     if len(exclude_list) > 0:
@@ -104,110 +99,123 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             working_dir = dir_stack[-1]
             continue
 
-        # Check if it looks like an entry of interest and
-        # and try to determine the compiler
-        # TODO: Refactor to use bashlex + argparse/optparse
-        if not cc_compile_regex.match(line) and not cpp_compile_regex.match(line):
-            result.skipped += 1
-            continue
-
+        commands = []
         try:
-            # Uses bashlex to parse and process sh/bash
-            # substitution commands
-            line = preprocess_cmd(line, working_dir)
-        except Exception as err:
-            if verbose:
-                print(('[INFO] Line {}: Failed to parse build command '
-                       '[Details: {}]').format(lineno, str(err)))
-            result.skipped += 1
+            commands = CommandProcessor.process(line, working_dir)
+        except (bashlex.errors.ParsingError, subprocess.CalledProcessError) as err:
+            msg = 'Failed to parse build command [Details: ({}) {}]'.format(type(err), str(err))
+            skip_line(line, msg)
             continue
 
-        words = split_cmd_line(line)
-        filepath = None
-
-        for word in words:
-            if (file_regex.match(word)):
-                filepath = word
-
-        if filepath and exclude_regex and exclude_regex.match(filepath):
-            if verbose:
-                print('[INFO] Line {}: Excluding file {}'.format(lineno, filepath))
+        if not commands:
             result.skipped += 1
-            continue
 
-        if filepath is None:
-            if verbose:
-                print("[INFO] Line {}: Empty file name. Ignoring: {}".format(lineno, line.strip()))
-            result.skipped += 1
-            continue
-        else:
-            result.count += 1
+        for c in commands:
+            filepath = c['filepath']
+            cmd = c['cmd']
+            if filepath is None:
+                skip_line(cmd, 'Empty file name')
+                continue
+            else:
+                result.count += 1
 
-        # add entry to database
-        # TODO performance: serialize to json file here?
-        if (verbose):
-            print("args={} --> {}".format(len(line), filepath))
+            if filepath and exclude_regex and exclude_regex.match(filepath):
+                skip_line(cmd, "Excluding file (regex='{}')".format('|'.join(exclude_list)))
+                continue
 
-        result.compdb.append({
-            'directory': working_dir,
-            'command': unescape(line),
-            'file': filepath,
-        })
+            # add entry to database
+            if (verbose):
+                print("cmd={} --> {}".format(len(result.compdb), filepath))
+
+            result.compdb.append({
+                'directory': working_dir,
+                'command': unescape(cmd),
+                'file': filepath,
+            })
 
     return result
 
 
+class SubstCommandVisitor(bashlex.ast.nodevisitor):
+    """Uses bashlex to parse and process sh/bash substitution commands.
+       May result in a parsing exception for invalid commands."""
+    def __init__(self):
+        self.substs = []
+
+    def visitcommandsubstitution(self, n, cmd):
+        self.substs.append(n)
+        return False
+
+
+class CommandProcessor(bashlex.ast.nodevisitor):
+    """Uses bashlex to parse and traverse the resulting bash AST
+       looking for and extracting compilation commands."""
+    @staticmethod
+    def process(line, wd):
+        trees = bashlex.parser.parse(line)
+        for tree in trees:
+            svisitor = SubstCommandVisitor()
+            svisitor.visit(tree)
+            substs = svisitor.substs
+            substs.reverse()
+            preprocessed = list(line)
+            for s in substs:
+                start, end = s.command.pos
+                s_cmd = line[start:end]
+                out = run_cmd(s_cmd, shell=True, cwd=wd)
+                start, end = s.pos
+                preprocessed[start:end] = out.strip()
+            preprocessed = ''.join(preprocessed)
+
+        trees = bashlex.parser.parse(preprocessed)
+        processor = CommandProcessor(preprocessed, wd)
+        for tree in trees:
+            processor.do_process(tree)
+        return processor.commands
+
+    def __init__(self, line, wd):
+        self.line = line
+        self.wd = wd
+        self.commands = []
+        self.reset()
+
+    def reset(self):
+        self.compiler = None
+        self.cmd = None
+        self.filepath = None
+
+    def do_process(self, tree):
+        self.visit(tree)
+        self.check_last_cmd()
+        return self.commands
+
+    def visitcommand(self, node, cmd):
+        self.check_last_cmd()
+        self.cmd = self.line[node.pos[0]:node.pos[1]]
+        # print('New command: {}'.format(self.cmd))
+        return True
+
+    def visitword(self, node, word):
+        # Check if it looks like an entry of interest and
+        # and try to determine the compiler
+        if self.compiler is None:
+            if cc_compile_regex.match(word) or cpp_compile_regex.match(word):
+                self.compiler = word
+        elif (file_regex.match(word)):
+            self.filepath = word
+        return True
+
+    def check_last_cmd(self):
+        # check if it seems to be a compilation command
+        if self.compiler is not None:
+            self.commands.append(dict(compiler=self.compiler, filepath=self.filepath, cmd=self.cmd))
+            res = True
+        # reset state to process new command
+        self.reset()
+
+
 def unescape(s):
     return s.encode().decode('unicode_escape')
-
-
-def preprocess_cmd(line, working_dir):
-    """Uses bashlex to parse and process sh/bash substitution commands.
-    May result in a parsing exception for invalid commands."""
-
-    trees = bashlex.parser.parse(line)
-    subst_nodes = []
-    for tree in trees:
-        visitor = NodeVisitor(subst_nodes)
-        visitor.visit(tree)
-
-    # do replacements from the end so the indicies will be correct
-    subst_nodes.reverse()
-    postprocessed = list(line)
-
-    for node in subst_nodes:
-        start, end = node.command.pos
-        subst_cmd = line[start:end]
-
-        start, end = node.pos
-        out = run_cmd(subst_cmd, shell=True, cwd=working_dir)
-        postprocessed[start:end] = out.strip()
-
-    return ''.join(postprocessed)
-
-
-def split_cmd_line(line):
-    # Pass 1: split line using whitespace
-    words = line.strip().split()
-    # Pass 2: merge words so that the no. of quotes is balanced
-    res = []
-    for w in words:
-        if(len(res) > 0 and unbalanced_quotes(res[-1])):
-            res[-1] += " " + w
-        else:
-            res.append(w)
-    return res
-
-
-def unbalanced_quotes(s):
-    single = 0
-    double = 0
-    for c in s:
-        if(c == "'"):
-            single += 1
-        elif(c == '"'):
-            double += 1
-    return (single % 2 == 1 or double % 2 == 1)
 
 
 if version_info[0] >= 3:  # Python 3
