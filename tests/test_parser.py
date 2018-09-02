@@ -61,6 +61,43 @@ def test_trivial_build_command():
     }
 
 
+def test_build_commands_with_wrapper():
+    pwd = getcwd()
+    build_log = [
+        'ccache gcc -o hello.o -c hello.c\n'
+        'icecc clang++ -c somefile.cpp\n'
+        'icecc ccache arm1999-gnu-etc-g++ -c main.cpp -o main.o\n'
+        'unknown-wrapper g++ -c main.cpp -o main.o\n'
+    ]
+    result = parse_build_log(
+        build_log,
+        proj_dir=pwd,
+        inc_prefix=None,
+        exclude_files=[],
+        verbose=True)
+
+    assert result.count == 4
+    assert result.skipped == 0
+    assert len(result.compdb) == 4
+    assert result.compdb == [{
+        'directory': pwd,
+        'file': 'hello.c',
+        'command': 'gcc -o hello.o -c hello.c'
+    }, {
+        'directory': pwd,
+        'file': 'somefile.cpp',
+        'command': 'clang++ -c somefile.cpp'
+    }, {
+        'directory': pwd,
+        'file': 'main.cpp',
+        'command': 'arm1999-gnu-etc-g++ -c main.cpp -o main.o'
+    }, {
+        'directory': pwd,
+        'file': 'main.cpp',
+        'command': 'g++ -c main.cpp -o main.o'
+    }]
+
+
 def test_parse_with_non_build_cmd_entries():
     pwd = getcwd()
     build_log = [
