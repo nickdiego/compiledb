@@ -18,23 +18,18 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import bashlex.parser
-import bashlex.ast
+import bashlex
 import re
 import subprocess
 from sys import version_info
 
 
 # Internal variables used to parse build log entries
-# TODO: Most of them will be removed soon in favor of an
-# bashlex/argparse based parsing (mainly for command line options
-# in to avoid reinventing the wheel and eliminate false positives
-# for compiler, wrappers and their flags
 cc_compile_regex = re.compile(".*-?g?cc|.*-?clang")
 cpp_compile_regex = re.compile(".*-?[gc]\+\+|.*-?clang\+\+")
-file_regex = re.compile("(^.+\.c$)|(^.+\.cc$)|(^.+\.cpp$)|(^.+\.cxx$)")
+file_regex = re.compile("^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$")
 
-# Leverage make --print-directory option
+# Leverage `make --print-directory` option
 make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
 make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
 
