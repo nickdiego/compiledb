@@ -25,9 +25,10 @@ from sys import version_info
 
 
 # Internal variables used to parse build log entries
-cc_compile_regex = re.compile(".*-?g?cc|.*-?clang")
-cpp_compile_regex = re.compile(".*-?[gc]\+\+|.*-?clang\+\+")
+cc_compile_regex = re.compile("^.*-?g?cc$|^.*-?clang$")
+cpp_compile_regex = re.compile("^.*-?[gc]\+\+$|^.*-?clang\+\+$")
 file_regex = re.compile("^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$")
+compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
 make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
@@ -53,7 +54,7 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
+def parse_build_log(build_log, proj_dir, inc_prefix, exclude_files, verbose, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
@@ -61,12 +62,15 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             print("[INFO] Line {}: {}. Ignoring: '{}'".format(lineno, reason, cmd))
         result.skipped += 1
 
-    exclude_regex = None
-    if len(exclude_list) > 0:
+    exclude_files_regex = None
+    if len(exclude_files) > 0:
         try:
-            exclude_regex = re.compile("|".join(exclude_list))
+            exclude_files = "|".join(exclude_files)
+            exclude_files_regex = re.compile(exclude_files)
         except:
-            raise Error('Regular expression not valid: {}'.format(exclude_list))
+            raise Error('Exclude files regex not valid: {}'.format(exclude_files))
+
+    compiler_wrappers.update(extra_wrappers)
 
     dir_stack = [proj_dir]
     working_dir = proj_dir
@@ -114,17 +118,25 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_list, verbose):
             else:
                 result.count += 1
 
-            if filepath and exclude_regex and exclude_regex.match(filepath):
-                skip_line(cmd, "Excluding file (regex='{}')".format('|'.join(exclude_list)))
+            if filepath and exclude_files_regex and exclude_files_regex.match(filepath):
+                skip_line(cmd, "Excluding file (regex='{}')".format(exclude_files))
                 continue
+
+            tokens = c['tokens']
+            wrappers = c['wrappers']
+            unknown = ['"%s"' % w for w in wrappers if w not in compiler_wrappers]
+            if unknown:
+                unknown = ', '.join(unknown)
+                print("Add command with unknown wrapper(s) {}: '{}'".format(unknown, cmd))
 
             # add entry to database
             if (verbose):
                 print("cmd={} --> {}".format(len(result.compdb), filepath))
 
+            compilation_cmd = ' '.join(tokens[len(wrappers):])
             result.compdb.append({
                 'directory': working_dir,
-                'command': unescape(cmd),
+                'command': unescape(compilation_cmd),
                 'file': filepath,
             })
 
@@ -178,6 +190,8 @@ class CommandProcessor(bashlex.ast.nodevisitor):
         self.compiler = None
         self.cmd = None
         self.filepath = None
+        self.tokens = []
+        self.wrappers = []
 
     def do_process(self, tree):
         self.visit(tree)
@@ -194,17 +208,22 @@ class CommandProcessor(bashlex.ast.nodevisitor):
         # Check if it looks like an entry of interest and
         # and try to determine the compiler
         if self.compiler is None:
-            if cc_compile_regex.match(word) or cpp_compile_regex.match(word):
+            if ((cc_compile_regex.match(word) or cpp_compile_regex.match(word)) and
+                    word not in compiler_wrappers):
                 self.compiler = word
+            else:
+                self.wrappers.append(word)
         elif (file_regex.match(word)):
             self.filepath = word
+
+        self.tokens.append(word)
         return True
 
     def check_last_cmd(self):
         # check if it seems to be a compilation command
         if self.compiler is not None:
-            self.commands.append(dict(compiler=self.compiler, filepath=self.filepath, cmd=self.cmd))
-            res = True
+            self.commands.append(dict(cmd=self.cmd, wrappers=self.wrappers, tokens=self.tokens,
+                                 compiler=self.compiler, filepath=self.filepath))
         # reset state to process new command
         self.reset()
 

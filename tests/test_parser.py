@@ -29,10 +29,10 @@ def test_empty():
     build_log = ''
     proj_dir = '/tmp'
     incpath_prefix = proj_dir
-    exclude_list = []
+    exclude_files = []
     verbose = False
 
-    result = parse_build_log(build_log, proj_dir, incpath_prefix, exclude_list,
+    result = parse_build_log(build_log, proj_dir, incpath_prefix, exclude_files,
                              verbose)
     assert result.count == 0
     assert result.skipped == 0
@@ -48,7 +48,7 @@ def test_trivial_build_command():
         build_log,
         proj_dir=pwd,
         inc_prefix=None,
-        exclude_list=[],
+        exclude_files=[],
         verbose=False)
 
     assert result.count == 1
@@ -82,8 +82,8 @@ def test_parse_with_non_build_cmd_entries():
         build_log,
         proj_dir=pwd,
         inc_prefix=None,
-        exclude_list=[],
-        verbose=False)
+        exclude_files=[],
+        verbose=True)
 
     assert result.count == 2
     assert result.skipped == 6
@@ -106,7 +106,7 @@ def test_automake_command():
             build_log,
             proj_dir=pwd,
             inc_prefix=None,
-            exclude_list=[],
+            exclude_files=[],
             verbose=False)
 
     assert result.count == 1
@@ -136,7 +136,7 @@ def test_multiple_commands_per_line():
             build_log,
             proj_dir=pwd,
             inc_prefix=None,
-            exclude_list=[],
+            exclude_files=[],
             verbose=False)
 
     assert result.count == 2
@@ -147,7 +147,7 @@ def test_multiple_commands_per_line():
         'file': './path/src/hein.cpp',
         'command': ' '.join([
             'g++',
-            '-c', '"./path/src/hein.cpp"',
+            '-c', './path/src/hein.cpp',
             '-o', 'out.o'
         ])
     }
