@@ -76,7 +76,8 @@ def merge_compdb(compdb, new_compdb, check_files=True, verbose=False):
 def generate(infile, outfile, build_dir, exclude_files, verbose, overwrite=False, strict=False):
     try:
         r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose, exclude_files=exclude_files)
-        compdb = r.compdb if overwrite else merge_compdb(load_json_compdb(verbose), r.compdb, strict, verbose)
+        compdb = [] if overwrite else load_json_compdb(verbose)
+        compdb = merge_compdb(compdb, r.compdb, strict, verbose)
         write_json_compdb(compdb, outfile, verbose=verbose)
         print("## Done.")
         return True
