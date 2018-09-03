@@ -122,18 +122,19 @@ def parse_build_log(build_log, proj_dir, inc_prefix, exclude_files, verbose, ext
                 skip_line(cmd, "Excluding file (regex='{}')".format(exclude_files))
                 continue
 
-            tokens = c['tokens']
             wrappers = c['wrappers']
-            unknown = ['"%s"' % w for w in wrappers if w not in compiler_wrappers]
-            if unknown:
-                unknown = ', '.join(unknown)
-                print("Add command with unknown wrapper(s) {}: '{}'".format(unknown, cmd))
+            unknown = ["'%s'" % w for w in wrappers if w not in compiler_wrappers]
+            if unknown and verbose:
+                    unknown = ', '.join(unknown)
+                    print("Add command with unknown wrapper(s) {}".format(unknown))
 
             # add entry to database
-            if (verbose):
-                print("cmd={} --> {}".format(len(result.compdb), filepath))
-
+            tokens = c['tokens']
             compilation_cmd = ' '.join(tokens[len(wrappers):])
+
+            if (verbose):
+                print("Adding command {}: {}".format(len(result.compdb), compilation_cmd))
+
             result.compdb.append({
                 'directory': working_dir,
                 'command': unescape(compilation_cmd),
