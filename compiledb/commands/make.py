@@ -38,5 +38,6 @@ def command(ctx, make_cmd, make_args):
     cmd = [make_cmd, logging_mode_flags] + list(make_args)
     pipe = popen(cmd, stdout=PIPE, encoding='utf-8')
     options.infile = pipe.stdout
-    generate(**vars(options))
+    done = generate(**vars(options))
     pipe.wait()
+    exit(0 if done else 1)

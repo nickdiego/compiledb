@@ -34,15 +34,16 @@ class Options(object):
     """ Simple data class used to store command line options
     shared by all compiledb subcommands"""
 
-    def __init__(self, infile, outfile, build_dir, inc_prefix,
-                 exclude_list, no_build, verbose):
+    def __init__(self, infile, outfile, build_dir, exclude_files, no_build,
+                 verbose, overwrite, strict):
         self.infile = infile
         self.outfile = outfile
         self.build_dir = build_dir
-        self.inc_prefix = inc_prefix
-        self.exclude_list = exclude_list
+        self.exclude_files = exclude_files
         self.verbose = verbose
         self.no_build = no_build
+        self.overwrite = overwrite
+        self.strict = strict
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -54,24 +55,27 @@ class Options(object):
               required=False, default='compile_commands.json')
 @click.option('-d', '--build-dir', 'build_dir', type=click.Path(),
               help="Path to be used as initial build dir", default=os.getcwd())
-@click.option('-i', '--include-prefix', 'inc_prefix', type=click.Path(),
-              help="Path to be used as include base directory")
-@click.option('-e', '--exclude', 'exclude_list', multiple=True,
+@click.option('-e', '--exclude', 'exclude_files', multiple=True,
               help="Regular expressions to exclude files.")
 @click.option('-n', '--no-build', is_flag=True, default=False,
               help='Only generates compilation db file.')
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help='Print verbose messages.')
+@click.option('-f', '--overwrite', is_flag=True, default=False,
+              help='Overwrite compile_commands.json intead of just updating it.')
+@click.option('-S', '--no-strict', is_flag=True, default=False,
+              help='Check if compilation db exist in the file system.')
 @click.pass_context
-def cli(ctx, infile, outfile, build_dir, inc_prefix, exclude_list, no_build, verbose):
+def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict):
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
     if ctx.invoked_subcommand is None:
-        generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose)
+        done = generate(infile, outfile, build_dir, exclude_files, verbose, overwrite, not no_strict)
+        exit(0 if done else 1)
     else:
-        ctx.obj = Options(infile, outfile, build_dir, inc_prefix, exclude_list,
-                          no_build, verbose)
+        ctx.obj = Options(infile, outfile, build_dir, exclude_files,
+                          no_build, verbose, overwrite, not no_strict)
 
 
 # Add subcommands

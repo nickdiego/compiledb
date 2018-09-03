@@ -54,7 +54,7 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, inc_prefix, exclude_files, verbose, extra_wrappers=[]):
+def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):

@@ -28,12 +28,10 @@ data_dir = path.abspath(path.join(path.dirname(__file__), 'data'))
 def test_empty():
     build_log = ''
     proj_dir = '/tmp'
-    incpath_prefix = proj_dir
     exclude_files = []
     verbose = False
 
-    result = parse_build_log(build_log, proj_dir, incpath_prefix, exclude_files,
-                             verbose)
+    result = parse_build_log(build_log, proj_dir, exclude_files, verbose)
     assert result.count == 0
     assert result.skipped == 0
     assert result.compdb is not None
@@ -47,7 +45,6 @@ def test_trivial_build_command():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        inc_prefix=None,
         exclude_files=[],
         verbose=False)
 
@@ -72,7 +69,6 @@ def test_build_commands_with_wrapper():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        inc_prefix=None,
         exclude_files=[],
         verbose=True)
 
@@ -118,7 +114,6 @@ def test_parse_with_non_build_cmd_entries():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        inc_prefix=None,
         exclude_files=[],
         verbose=True)
 
@@ -142,7 +137,6 @@ def test_automake_command():
         result = parse_build_log(
             build_log,
             proj_dir=pwd,
-            inc_prefix=None,
             exclude_files=[],
             verbose=False)
 
@@ -172,7 +166,6 @@ def test_multiple_commands_per_line():
         result = parse_build_log(
             build_log,
             proj_dir=pwd,
-            inc_prefix=None,
             exclude_files=[],
             verbose=False)
 

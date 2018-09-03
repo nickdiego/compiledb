@@ -26,14 +26,12 @@ import sys
 from compiledb.parser import parse_build_log, Error
 
 
-def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False,
-                         include_prefix=None, exclude_list=[]):
+def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False, exclude_files=[]):
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
     print("## Processing build commands from {}".format(instream.name))
-    result = parse_build_log(instream, proj_dir, include_prefix,
-                             exclude_list, verbose)
+    result = parse_build_log(instream, proj_dir, exclude_files, verbose)
     return result
 
 
@@ -46,13 +44,42 @@ def write_json_compdb(compdb, outstream=None, verbose=False,
     outstream.write(os.linesep)
 
 
-def generate(infile, outfile, build_dir, inc_prefix, exclude_list, verbose, **kwargs):
+def load_json_compdb(verbose=False):
+    compdb_path = 'compile_commands.json'
     try:
-        r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose,
-                                 include_prefix=inc_prefix, exclude_list=exclude_list)
-        write_json_compdb(r.compdb, outfile, verbose=verbose)
+        with open(compdb_path, "r") as instream:
+            compdb = json.load(instream)
+            print("## Loaded compilation database with {} entries from {}".format(
+                len(compdb), compdb_path))
+            return compdb
+    except Exception as e:
+        if verbose:
+            print("## Failed to read previous {}: {}".format(compdb_path, e))
+        return []
+
+
+def merge_compdb(compdb, new_compdb, check_files=True, verbose=False):
+    def gen_key(entry):
+        if 'directory' in entry:
+            return os.path.join(entry['directory'], entry['file'])
+        return entry['directory']
+
+    def check_file(path):
+        return True if not check_files else os.path.exists(path)
+
+    orig = {gen_key(c): c for c in compdb if 'file' in c}
+    new = {gen_key(c): c for c in new_compdb if 'file' in c}
+    orig.update(new)
+    return [v for k, v in orig.items() if check_file(k)]
+
+
+def generate(infile, outfile, build_dir, exclude_files, verbose, overwrite=False, strict=False):
+    try:
+        r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose, exclude_files=exclude_files)
+        compdb = r.compdb if overwrite else merge_compdb(load_json_compdb(verbose), r.compdb, strict, verbose)
+        write_json_compdb(compdb, outfile, verbose=verbose)
         print("## Done.")
-        sys.exit(0)
+        return True
     except Error as e:
         print(str(e))
-        sys.exit(1)
+        return False
