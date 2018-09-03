@@ -64,7 +64,7 @@ class Options(object):
 @click.option('-f', '--overwrite', is_flag=True, default=False,
               help='Overwrite compile_commands.json intead of just updating it.')
 @click.option('-S', '--no-strict', is_flag=True, default=False,
-              help='Check if compilation db exist in the file system.')
+              help='Do not check if source files exist in the file system.')
 @click.pass_context
 def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict):
     """Clang's Compilation Database generator for make-based build systems.
