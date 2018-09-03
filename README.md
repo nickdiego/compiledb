@@ -76,7 +76,7 @@ $ make -Bnwk | compiledb -o-
 I've implemented this tool because I needed to index some [AOSP][aosp]'s modules for navigating
 and studying purposes (after having no satisfatory results with current tools available by the
 time such as [YCM-Generator][ycm] and [Bear][bear]). So I've reworked YCM-Generator, which resulted
-in the initial version of (compiledb/parser.py)[compiledb/parser.py] and used successfully to generate
+in the initial version of [compiledb/parser.py](compiledb/parser.py) and used successfully to generate
 `compile_commands.json` for some AOSP modules in ~1min running in a [Docker][docker] container and then
 could use it with some great tools, such as:
 
