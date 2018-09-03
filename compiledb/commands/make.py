@@ -63,6 +63,8 @@ class AutoconfMockScript:
         self.cleanup()
 
     def cleanup(self):
+        if not self.path:
+            return
         if self.verbose:
             print("Cleaning up autoconf mock resources..")
         if os.path.isfile(self.path):
