@@ -101,7 +101,7 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=
         commands = []
         try:
             commands = CommandProcessor.process(line, working_dir)
-        except (bashlex.errors.ParsingError, subprocess.CalledProcessError, NotImplementedError) as err:
+        except Exception as err:
             msg = 'Failed to parse build command [Details: ({}) {}]'.format(type(err), str(err))
             skip_line(line, msg)
             continue
