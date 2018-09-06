@@ -161,6 +161,8 @@ class CommandProcessor(bashlex.ast.nodevisitor):
     @staticmethod
     def process(line, wd):
         trees = bashlex.parser.parse(line)
+        if not trees:
+            return []
         for tree in trees:
             svisitor = SubstCommandVisitor()
             svisitor.visit(tree)
