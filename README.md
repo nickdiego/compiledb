@@ -1,8 +1,9 @@
-[![CircleCI](https://circleci.com/gh/nickdiego/compiledb-generator.svg?style=svg)](https://circleci.com/gh/nickdiego/compiledb-generator)
-[![Build Status](https://travis-ci.org/nickdiego/compiledb-generator.svg?branch=master)](https://travis-ci.org/nickdiego/compiledb-generator)
-[![PyPI version](https://badge.fury.io/py/compiledb.svg)](https://badge.fury.io/py/compiledb)
-
 # Compilation Database Generator
+
+[![CircleCI branch](https://img.shields.io/circleci/project/github/nickdiego/compiledb-generator/master.svg)](https://circleci.com/gh/nickdiego/compiledb-generator)
+[![PyPI](https://img.shields.io/pypi/v/compiledb.svg)](https://pypi.org/project/compiledb/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/compiledb.svg)](https://pypi.org/project/compiledb)
+[![GitHub](https://img.shields.io/github/license/nickdiego/compiledb-generator.svg)](https://github.com/nickdiego/compiledb-generator/blob/master/LICENSE)
 
 Tool for generating [Clang's JSON Compilation Database][compdb] file for GNU
 `make`-based build systems.
