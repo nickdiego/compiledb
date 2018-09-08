@@ -1,9 +1,9 @@
 # Compilation Database Generator
 
-[![CircleCI branch](https://img.shields.io/circleci/project/github/nickdiego/compiledb-generator/master.svg)](https://circleci.com/gh/nickdiego/compiledb-generator)
+[![CircleCI branch](https://img.shields.io/circleci/project/github/nickdiego/compiledb/master.svg?label=circleci)](https://circleci.com/gh/nickdiego/compiledb)
 [![PyPI](https://img.shields.io/pypi/v/compiledb.svg)](https://pypi.org/project/compiledb/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/compiledb.svg)](https://pypi.org/project/compiledb)
-[![GitHub](https://img.shields.io/github/license/nickdiego/compiledb-generator.svg)](https://github.com/nickdiego/compiledb-generator/blob/master/LICENSE)
+[![GitHub](https://img.shields.io/github/license/nickdiego/compiledb.svg)](https://github.com/nickdiego/compiledb/blob/master/LICENSE)
 
 Tool for generating [Clang's JSON Compilation Database][compdb] file for GNU
 `make`-based build systems.
@@ -32,7 +32,7 @@ YCM-generator's fake-toolchanin approach.
 build command, updates the JSON compilation database file corresponding to that build,
 resulting in a command-line interface similar to [Bear][bear].
 
-To generate `compile_commands.json` file using compiledb-generator's "make wrapper" script,
+To generate `compile_commands.json` file using compiledb's "make wrapper" script,
 executing Makefile target `all`:
 ```bash
 $ compiledb make
