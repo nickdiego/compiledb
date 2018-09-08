@@ -1,6 +1,6 @@
 # Compilation Database Generator
 
-[![CircleCI branch](https://img.shields.io/circleci/project/github/nickdiego/compiledb/master.svg?label=circleci)](https://circleci.com/gh/nickdiego/compiledb)
+[![CircleCI branch](https://img.shields.io/circleci/project/github/nickdiego/compiledb/master.svg)](https://circleci.com/gh/nickdiego/compiledb)
 [![PyPI](https://img.shields.io/pypi/v/compiledb.svg)](https://pypi.org/project/compiledb/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/compiledb.svg)](https://pypi.org/project/compiledb)
 [![GitHub](https://img.shields.io/github/license/nickdiego/compiledb.svg)](https://github.com/nickdiego/compiledb/blob/master/LICENSE)
