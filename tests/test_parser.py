@@ -54,7 +54,7 @@ def test_trivial_build_command():
     assert result.compdb[0] == {
         'directory': pwd,
         'file': 'hello.c',
-        'command': 'gcc -o hello.o -c hello.c'
+        'arguments': ['gcc', '-o', 'hello.o', '-c', 'hello.c']
     }
 
 
@@ -78,19 +78,19 @@ def test_build_commands_with_wrapper():
     assert result.compdb == [{
         'directory': pwd,
         'file': 'hello.c',
-        'command': 'gcc -o hello.o -c hello.c'
+        'arguments': ['gcc', '-o', 'hello.o', '-c', 'hello.c']
     }, {
         'directory': pwd,
         'file': 'somefile.cpp',
-        'command': 'clang++ -c somefile.cpp'
+        'arguments': ['clang++', '-c', 'somefile.cpp']
     }, {
         'directory': pwd,
         'file': 'main.cpp',
-        'command': 'arm1999-gnu-etc-g++ -c main.cpp -o main.o'
+        'arguments': ['arm1999-gnu-etc-g++', '-c', 'main.cpp', '-o', 'main.o']
     }, {
         'directory': pwd,
         'file': 'main.cpp',
-        'command': 'g++ -c main.cpp -o main.o'
+        'arguments': ['g++', '-c', 'main.cpp', '-o', 'main.o']
     }]
 
 
@@ -123,11 +123,11 @@ def test_parse_with_non_build_cmd_entries():
     assert result.compdb == [{
         'directory': pwd,
         'file': 'valid.c',
-        'command': 'gcc -c valid.c',
+        'arguments': ['gcc', '-c', 'valid.c'],
     }, {
         'directory': pwd,
         'file': 'valid2.cc',
-        'command': 'g++ -c valid2.cc'
+        'arguments': ['g++', '-c', 'valid2.cc']
     }]
 
 
@@ -146,7 +146,7 @@ def test_automake_command():
     assert result.compdb[0] == {
         'directory': pwd,
         'file': './main.c',
-        'command': ' '.join([
+        'arguments': [
             'gcc',
             '-DPACKAGE_NAME="hello"',
             '-DPACKAGE_VERSION="1.0.0"',
@@ -156,7 +156,7 @@ def test_automake_command():
             '-c',
             '-o', 'hello_world1-main.o',
             './main.c'
-        ])
+        ]
     }
 
 
@@ -175,11 +175,11 @@ def test_multiple_commands_per_line():
     assert result.compdb[0] == {
         'directory': pwd,
         'file': './path/src/hein.cpp',
-        'command': ' '.join([
+        'arguments': [
             'g++',
             '-c', './path/src/hein.cpp',
             '-o', 'out.o'
-        ])
+        ]
     }
 
 

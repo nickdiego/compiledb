@@ -130,14 +130,14 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=
 
             # add entry to database
             tokens = c['tokens']
-            compilation_cmd = ' '.join(tokens[len(wrappers):])
+            arguments = [unescape(a) for a in tokens[len(wrappers):]]
 
             if (verbose):
-                print("Adding command {}: {}".format(len(result.compdb), compilation_cmd))
+                print("Adding command {}: {}".format(len(result.compdb), " ".join(arguments)))
 
             result.compdb.append({
                 'directory': working_dir,
-                'command': unescape(compilation_cmd),
+                'arguments': arguments,
                 'file': filepath,
             })
 
