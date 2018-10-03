@@ -182,6 +182,46 @@ def test_multiple_commands_per_line():
         ]
     }
 
+def test_parse_file_extensions():
+    pwd = getcwd()
+    build_log = [
+        'gcc -c somefile.cpp\n'
+        'gcc -c main.cxx -o main.o\n'
+        'gcc -c main.cc -o main.o\n'
+        'gcc -c -o swtch.o swtch.S\n'
+        'gcc -c -o what.o what.s\n'
+    ]
+    result = parse_build_log(
+        build_log,
+        proj_dir=pwd,
+        exclude_files=[],
+        verbose=True)
+
+    assert result.count == 5
+    assert result.skipped == 0
+    assert len(result.compdb) == 5
+    assert result.compdb == [{
+        'directory': pwd,
+        'file': 'somefile.cpp',
+        'arguments': ['gcc', '-c', 'somefile.cpp']
+    }, {
+        'directory': pwd,
+        'file': 'main.cxx',
+        'arguments': ['gcc', '-c', 'main.cxx', '-o', 'main.o']
+    }, {
+        'directory': pwd,
+        'file': 'main.cc',
+        'arguments': ['gcc', '-c', 'main.cc', '-o', 'main.o']
+    }, {
+        'directory': pwd,
+        'file': 'swtch.S',
+        'arguments': ['gcc', '-c', '-o', 'swtch.o', 'swtch.S']
+    }, {
+        'directory': pwd,
+        'file': 'what.s',
+        'arguments': ['gcc', '-c', '-o', 'what.o', 'what.s']
+    }]
+
 
 def input_file(relpath):
     relpath = '{}.txt'.format(relpath)
