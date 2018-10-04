@@ -27,7 +27,7 @@ from sys import version_info
 # Internal variables used to parse build log entries
 cc_compile_regex = re.compile("^.*-?g?cc$|^.*-?clang$")
 cpp_compile_regex = re.compile("^.*-?[gc]\+\+$|^.*-?clang\+\+$")
-file_regex = re.compile("^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$")
+file_regex = re.compile("^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
