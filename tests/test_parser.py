@@ -58,6 +58,25 @@ def test_trivial_build_command():
     }
 
 
+def test_build_commands_with_version():
+    pwd = getcwd()
+    build_log = ['clang-5.0 -o hello.o -c hello.c']
+    result = parse_build_log(
+        build_log,
+        proj_dir=pwd,
+        exclude_files=[],
+        verbose=False)
+
+    assert result.count == 1
+    assert result.skipped == 0
+    assert len(result.compdb) == 1
+    assert result.compdb[0] == {
+        'directory': pwd,
+        'file': 'hello.c',
+        'arguments': ['clang-5.0', '-o', 'hello.o', '-c', 'hello.c']
+    }
+
+
 def test_build_commands_with_wrapper():
     pwd = getcwd()
     build_log = [
