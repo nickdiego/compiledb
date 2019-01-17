@@ -1,0 +1,12 @@
+[
+    {
+        "file": "bar.cpp",
+        "directory": "data",
+        "arguments": [
+            "g++",
+            "bar.cpp",
+            "-o",
+            "bar.o"
+        ]
+    }
+]

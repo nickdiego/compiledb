@@ -34,9 +34,10 @@ class Options(object):
     """ Simple data class used to store command line options
     shared by all compiledb subcommands"""
 
-    def __init__(self, infile, outfile, build_dir, exclude_files, no_build,
+    def __init__(self, infile, logfile, outfile, build_dir, exclude_files, no_build,
                  verbose, overwrite, strict):
         self.infile = infile
+        self.logfile = logfile
         self.outfile = outfile
         self.build_dir = build_dir
         self.exclude_files = exclude_files
@@ -47,11 +48,14 @@ class Options(object):
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
-@click.option('-p', '--parse', 'infile', type=click.File('r'),
+@click.option('-p', '--parse', 'logfile', type=click.File('r'),
               help='Build log file to parse compilation commands from.' +
               '(Default: stdin)', required=False, default=sys.stdin)
+@click.option('-i', '--input', 'infile',
+              help="Input file path (Default: compile_commands.json)",
+              required=False, default='compile_commands.json')
 @click.option('-o', '--output', 'outfile', type=click.File('w'),
-              help="Output file path (Default: std output)",
+              help="Output file path (Default: compile_commands.json)",
               required=False, default='compile_commands.json')
 @click.option('-d', '--build-dir', 'build_dir', type=click.Path(),
               help="Path to be used as initial build dir", default=os.getcwd())
@@ -62,19 +66,19 @@ class Options(object):
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help='Print verbose messages.')
 @click.option('-f', '--overwrite', is_flag=True, default=False,
-              help='Overwrite compile_commands.json intead of just updating it.')
+              help='Overwrite compile_commands.json instead of just updating it.')
 @click.option('-S', '--no-strict', is_flag=True, default=False,
               help='Do not check if source files exist in the file system.')
 @click.pass_context
-def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict):
+def cli(ctx, infile, logfile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict):
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
     if ctx.invoked_subcommand is None:
-        done = generate(infile, outfile, build_dir, exclude_files, verbose, overwrite, not no_strict)
+        done = generate(infile, logfile, outfile, build_dir, exclude_files, verbose, overwrite, not no_strict)
         exit(0 if done else 1)
     else:
-        ctx.obj = Options(infile, outfile, build_dir, exclude_files,
+        ctx.obj = Options(infile, logfile, outfile, build_dir, exclude_files,
                           no_build, verbose, overwrite, not no_strict)
 
 

@@ -18,11 +18,10 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from os import path, getcwd
+from os import getcwd
 
 from compiledb.parser import parse_build_log
-
-data_dir = path.abspath(path.join(path.dirname(__file__), 'data'))
+from tests.common import input_file
 
 
 def test_empty():
@@ -240,9 +239,4 @@ def test_parse_file_extensions():
         'file': 'what.s',
         'arguments': ['gcc', '-c', '-o', 'what.o', 'what.s']
     }]
-
-
-def input_file(relpath):
-    relpath = '{}.txt'.format(relpath)
-    return open(path.join(data_dir, relpath), 'r')
 

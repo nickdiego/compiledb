@@ -100,7 +100,7 @@ def command(ctx, make_cmd, make_args):
         if mock_script.path:
             cmd.append("SHELL={}".format(mock_script.path))
         pipe = popen(cmd, stdout=PIPE, encoding='utf-8')
-        options.infile = pipe.stdout
+        options.logfile = pipe.stdout
         done = generate(**args)
         pipe.wait()
     exit(0 if done else 1)
