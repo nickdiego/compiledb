@@ -50,8 +50,10 @@ class Options(object):
 @click.option('-p', '--parse', 'infile', type=click.File('r'),
               help='Build log file to parse compilation commands from.' +
               '(Default: stdin)', required=False, default=sys.stdin)
-@click.option('-o', '--output', 'outfile', type=click.File('w'),
-              help="Output file path (Default: std output)",
+@click.option('-o', '--output', 'outfile', type=click.Path(),
+              help="Output file path (Default: compile_commands.json). " +
+              'If -f/--overwrite is not specified, this file is updated ' +
+              'with the new contents.',
               required=False, default='compile_commands.json')
 @click.option('-d', '--build-dir', 'build_dir', type=click.Path(),
               help="Path to be used as initial build dir", default=os.getcwd())
@@ -62,7 +64,7 @@ class Options(object):
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help='Print verbose messages.')
 @click.option('-f', '--overwrite', is_flag=True, default=False,
-              help='Overwrite compile_commands.json intead of just updating it.')
+              help='Overwrite compile_commands.json instead of just updating it.')
 @click.option('-S', '--no-strict', is_flag=True, default=False,
               help='Do not check if source files exist in the file system.')
 @click.pass_context

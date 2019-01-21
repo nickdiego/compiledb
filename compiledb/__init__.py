@@ -35,23 +35,24 @@ def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False, exc
     return result
 
 
-def write_json_compdb(compdb, outstream=None, verbose=False,
+def write_json_compdb(compdb, compdb_path='compile_commands.json', verbose=False,
                       force=False, pretty_output=True):
     print("## Writing compilation database with {} entries to {}".format(
-        len(compdb), outstream.name))
+        len(compdb), compdb_path))
 
-    json.dump(compdb, outstream, indent=pretty_output)
-    outstream.write(os.linesep)
+    with open(compdb_path, 'w') as outstream:
+        json.dump(compdb, outstream, indent=pretty_output)
+        outstream.write(os.linesep)
 
 
-def load_json_compdb(verbose=False):
-    compdb_path = 'compile_commands.json'
+def load_json_compdb(compdb_path='compile_commands.json', verbose=False):
     try:
-        with open(compdb_path, "r") as instream:
+        with open(compdb_path, 'r') as instream:
             compdb = json.load(instream)
-            print("## Loaded compilation database with {} entries from {}".format(
-                len(compdb), compdb_path))
-            return compdb
+
+        print("## Loaded compilation database with {} entries from {}".format(
+            len(compdb), compdb_path))
+        return compdb
     except Exception as e:
         if verbose:
             print("## Failed to read previous {}: {}".format(compdb_path, e))
@@ -76,7 +77,7 @@ def merge_compdb(compdb, new_compdb, check_files=True, verbose=False):
 def generate(infile, outfile, build_dir, exclude_files, verbose, overwrite=False, strict=False):
     try:
         r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose, exclude_files=exclude_files)
-        compdb = [] if overwrite else load_json_compdb(verbose)
+        compdb = [] if overwrite else load_json_compdb(outfile, verbose)
         compdb = merge_compdb(compdb, r.compdb, strict, verbose)
         write_json_compdb(compdb, outfile, verbose=verbose)
         print("## Done.")
