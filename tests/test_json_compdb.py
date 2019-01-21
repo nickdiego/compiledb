@@ -3,7 +3,7 @@
 #   compiledb-generator: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
 #
-#   Copyright (c) 2017 Nick Diego Yamane <nick.diego@gmail.com>
+#   Copyright (c) 2019 Nick Diego Yamane <nick.diego@gmail.com>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import os
+import shutil
 import json
 import click
 import pytest
@@ -47,6 +48,7 @@ multiple_commands_oneline_compdb = [
         ]
     }
 ]
+nonexistent_files = ['compile_commands.json', 'nonexistent.json']
 
 
 def test_load_no_compdb_path_default_file_not_exist(capsys):
@@ -111,44 +113,30 @@ def test_load_compdb_path_file_exists(capsys):
     )
 
 
-@pytest.mark.parametrize('filename', ['compile_commands.json', 'nonexistent.json'])
-def test_generate_input_file_not_exist(capsys, filename):
-    pwd = os.getcwd()
-    with input_file('multiple_commands_oneline') as logstream, \
-            click.utils.LazyFile(filename, 'w') as outstream:
-        assert generate(
-            logfile=logstream,
-            infile=filename,
-            outfile=outstream,
-            build_dir=pwd,
-            exclude_files=[],
-            verbose=True,
-            overwrite=False,
-            strict=False
-        )
-
-    assert_compdb_equals(filename, multiple_commands_oneline_compdb)
+@pytest.mark.parametrize('output_filename', nonexistent_files)
+def test_generate_input_file_not_exist_no_overwrite(capsys, output_filename):
+    assert_generate_is_true(output_filename, overwrite=False)
+    assert_compdb_equals(output_filename, multiple_commands_oneline_compdb)
     output = capsys.readouterr().out
-    assert 'Failed to read previous ' + filename in output
-    assert 'Writing compilation database with 2 entries to ' + filename in output
+    assert 'Failed to read previous ' + output_filename in output
+    assert 'Writing compilation database with 2 entries to ' + output_filename in output
 
 
-def test_generate_input_file_exists(capsys):
-    pwd = os.getcwd()
-    filename = os.path.join(data_dir, 'compile_commands2.json')
-    compdb_path = 'compile_commands.json'
-    with input_file('multiple_commands_oneline') as logstream, \
-            click.utils.LazyFile(compdb_path, 'w') as outstream:
-        assert generate(
-            logfile=logstream,
-            infile=filename,
-            outfile=outstream,
-            build_dir=pwd,
-            exclude_files=[],
-            verbose=False,
-            overwrite=False,
-            strict=False
-        )
+@pytest.mark.parametrize('output_filename', nonexistent_files)
+def test_generate_input_file_not_exist_overwrite(capsys, output_filename):
+    assert_generate_is_true(output_filename, overwrite=True)
+    assert_compdb_equals(output_filename, multiple_commands_oneline_compdb)
+    output = capsys.readouterr().out
+    assert 'Failed to read previous ' + output_filename not in output
+    assert 'Writing compilation database with 2 entries to ' + output_filename in output
+
+
+def test_generate_input_file_exists_no_overwrite(capsys):
+    input_filename = os.path.join(data_dir, 'compile_commands2.json')
+    output_filename = 'compile_commands2.json'
+    shutil.copy(input_filename, output_filename)
+
+    assert_generate_is_true(output_filename, overwrite=False)
 
     expected_compdb = multiple_commands_oneline_compdb + [
         {
@@ -162,11 +150,36 @@ def test_generate_input_file_exists(capsys):
             ]
         }
     ]
-    assert_compdb_equals(compdb_path, expected_compdb)
+    assert_compdb_equals(output_filename, expected_compdb)
     output = capsys.readouterr().out
-    assert 'Loaded compilation database with 1 entries from ' + filename in output
-    assert 'Writing compilation database with 3 entries to ' + compdb_path in output
+    assert 'Loaded compilation database with 1 entries from ' + output_filename in output
+    assert 'Writing compilation database with 3 entries to ' + output_filename in output
 
+
+def test_generate_input_file_exists_overwrite(capsys):
+    input_filename = os.path.join(data_dir, 'compile_commands2.json')
+    output_filename = 'compile_commands2.json'
+    shutil.copy(input_filename, output_filename)
+
+    assert_generate_is_true(output_filename, overwrite=True)
+
+    assert_compdb_equals(output_filename, multiple_commands_oneline_compdb)
+    output = capsys.readouterr().out
+    assert 'Loaded compilation database with 1 entries from ' + output_filename not in output
+    assert 'Writing compilation database with 2 entries to ' + output_filename in output
+
+
+def assert_generate_is_true(output_filename, overwrite):
+    with input_file('multiple_commands_oneline') as instream:
+        assert generate(
+            infile=instream,
+            outfile=output_filename,
+            build_dir=os.getcwd(),
+            exclude_files=[],
+            verbose=True,
+            overwrite=overwrite,
+            strict=False
+        )
 
 def assert_compdb_equals(compdb_path, expected_compdb):
     def get_key(item):

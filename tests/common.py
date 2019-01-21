@@ -3,7 +3,7 @@
 #   compiledb-generator: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
 #
-#   Copyright (c) 2017 Nick Diego Yamane <nick.diego@gmail.com>
+#   Copyright (c) 2019 Nick Diego Yamane <nick.diego@gmail.com>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
