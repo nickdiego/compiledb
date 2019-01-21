@@ -53,7 +53,7 @@ class Options(object):
 @click.option('-o', '--output', 'outfile', type=click.Path(),
               help="Output file path (Default: compile_commands.json). " +
               'If -f/--overwrite is not specified, this file is updated ' +
-              'with the new contents.',
+              'with the new contents. Use \'-\' to output to stdout',
               required=False, default='compile_commands.json')
 @click.option('-d', '--build-dir', 'build_dir', type=click.Path(),
               help="Path to be used as initial build dir", default=os.getcwd())
