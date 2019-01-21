@@ -208,9 +208,6 @@ def assert_generate_is_true(output_filename, overwrite):
         )
 
 def assert_compdb_file_equals(compdb_path, expected_compdb):
-    def get_key(item):
-        return item['directory'], item['file'], item['arguments']
-
     try:
         with open(compdb_path, 'r') as instream:
             compdb = json.load(instream)
