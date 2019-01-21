@@ -21,7 +21,6 @@
 import os
 import shutil
 import json
-import re
 import pytest
 from compiledb import load_json_compdb, generate
 from tests.common import input_file, data_dir
