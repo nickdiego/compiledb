@@ -50,7 +50,7 @@ class Options(object):
 @click.option('-p', '--parse', 'infile', type=click.File('r'),
               help='Build log file to parse compilation commands from.' +
               '(Default: stdin)', required=False, default=sys.stdin)
-@click.option('-o', '--output', 'outfile', type=click.Path(),
+@click.option('-o', '--output', 'outfile', type=click.File('a+'),
               help="Output file path (Default: compile_commands.json). " +
               'If -f/--overwrite is not specified, this file is updated ' +
               'with the new contents. Use \'-\' to output to stdout',
