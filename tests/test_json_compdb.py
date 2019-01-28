@@ -22,8 +22,10 @@ import os
 import shutil
 import json
 import pytest
+import sys
+from os.path import basename
 from compiledb import load_json_compdb, generate
-from tests.common import input_file, data_dir
+from tests.common import input_file, output_file, data_dir, full_path
 
 
 multiple_commands_oneline_compdb = [
@@ -48,20 +50,9 @@ multiple_commands_oneline_compdb = [
     }
 ]
 nonexistent_files = ['compile_commands.json', 'nonexistent.json']
-stdout_filenames = ['-', '']
 
 
-def test_load_no_compdb_path_default_file_not_exist(capsys):
-    assert load_json_compdb() == []
-    assert capsys.readouterr().out == ''
-
-
-def test_load_no_compdb_path_verbose_default_file_not_exist(capsys):
-    assert load_json_compdb(verbose=True) == []
-    assert 'Failed to read previous compile_commands.json' in capsys.readouterr().out
-
-
-def test_load_no_compdb_path_default_file_exists(capsys):
+def test_load_compdb_path_file_exists(capsys):
     try:
         orig_pwd = os.getcwd()
         os.chdir(data_dir)
@@ -77,72 +68,26 @@ def test_load_no_compdb_path_default_file_exists(capsys):
                 ]
             }
         ]
-        assert load_json_compdb() == expected_compdb
-        assert (
-            'Loaded compilation database with 1 entries from compile_commands.json'
-            in capsys.readouterr().out
-        )
+        with input_file('compile_commands.json') as outfile:
+            assert load_json_compdb(outfile) == expected_compdb
+            assert (
+                'Loaded compilation database with 1 entries from compile_commands.json'
+                in capsys.readouterr().out
+            )
     finally:
         os.chdir(orig_pwd)
 
 
-def test_load_compdb_path_verbose_file_not_exist(capsys):
-    compdb_path = os.path.join(data_dir, 'nonexistent.json')
-    assert load_json_compdb('nonexistent.json', True) == []
-    assert 'Failed to read previous nonexistent.json' in capsys.readouterr().out
-
-
-def test_load_compdb_path_file_exists(capsys):
-    compdb_path = os.path.join(data_dir, 'compile_commands2.json')
-    expected_compdb = [
-        {
-            'file': 'bar.cpp',
-            'directory': 'data',
-            'arguments': [
-                'g++',
-                'bar.cpp',
-                '-o',
-                'bar.o'
-            ]
-        }
-    ]
-    assert load_json_compdb(compdb_path) == expected_compdb
-    assert (
-        'Loaded compilation database with 1 entries from ' + compdb_path
-        in capsys.readouterr().out
-    )
-
-
-@pytest.mark.parametrize('output_filename', stdout_filenames)
-def test_load_compdb_ignores_stdout_filename(capsys, output_filename):
-    assert load_json_compdb(output_filename, verbose=True) == []
+def test_load_compdb_ignores_stdout_filename(capsys):
+    assert load_json_compdb(sys.stdout, verbose=True) == []
     assert capsys.readouterr().out == ''
 
 
-@pytest.mark.parametrize('output_filename', nonexistent_files)
-def test_generate_input_file_not_exist_no_overwrite(capsys, output_filename):
-    assert_generate_is_true(output_filename, overwrite=False)
-    assert_compdb_file_equals(output_filename, multiple_commands_oneline_compdb)
-    output = capsys.readouterr().out
-    assert 'Failed to read previous ' + output_filename in output
-    assert 'Writing compilation database with 2 entries to ' + output_filename in output
-
-
-@pytest.mark.parametrize('output_filename', nonexistent_files)
-def test_generate_input_file_not_exist_overwrite(capsys, output_filename):
-    assert_generate_is_true(output_filename, overwrite=True)
-    assert_compdb_file_equals(output_filename, multiple_commands_oneline_compdb)
-    output = capsys.readouterr().out
-    assert 'Failed to read previous ' + output_filename not in output
-    assert 'Writing compilation database with 2 entries to ' + output_filename in output
-
-
 def test_generate_input_file_exists_no_overwrite(capsys):
-    input_filename = os.path.join(data_dir, 'compile_commands2.json')
-    output_filename = 'compile_commands2.json'
-    shutil.copy(input_filename, output_filename)
-
-    assert_generate_is_true(output_filename, overwrite=False)
+    shutil.copy(full_path('compile_commands2.json'),
+                full_path('result.json'))
+    with output_file("result.json") as outfile:
+        assert_generate_is_true(outfile, overwrite=False)
 
     expected_compdb = multiple_commands_oneline_compdb + [
         {
@@ -156,50 +101,44 @@ def test_generate_input_file_exists_no_overwrite(capsys):
             ]
         }
     ]
-    assert_compdb_file_equals(output_filename, expected_compdb)
+    assert_compdb_file_equals(outfile.name, expected_compdb)
     output = capsys.readouterr().out
-    assert 'Loaded compilation database with 1 entries from ' + output_filename in output
-    assert 'Writing compilation database with 3 entries to ' + output_filename in output
+    assert 'Loaded compilation database with 1 entries from ' + basename(outfile.name) in output
+    assert 'Writing compilation database with 3 entries to ' + basename(outfile.name) in output
 
 
 def test_generate_input_file_exists_overwrite(capsys):
-    input_filename = os.path.join(data_dir, 'compile_commands2.json')
-    output_filename = 'compile_commands2.json'
-    shutil.copy(input_filename, output_filename)
+    shutil.copy(full_path('compile_commands2.json'),
+                full_path('result.json'))
+    with output_file("result.json") as outfile:
+        assert_generate_is_true(outfile, overwrite=True)
 
-    assert_generate_is_true(output_filename, overwrite=True)
-
-    assert_compdb_file_equals(output_filename, multiple_commands_oneline_compdb)
+    assert_compdb_file_equals(outfile.name, multiple_commands_oneline_compdb)
     output = capsys.readouterr().out
-    assert 'Loaded compilation database with 1 entries from ' + output_filename not in output
-    assert 'Writing compilation database with 2 entries to ' + output_filename in output
+    assert 'Loaded compilation database with 1 entries from ' + basename(outfile.name) not in output
+    assert 'Writing compilation database with 2 entries to ' + basename(outfile.name) in output
 
 
-@pytest.mark.parametrize('output_filename', ['-', ''])
 @pytest.mark.parametrize('overwrite', [False, True])
-def test_generate_output_stdout(capsys, output_filename, overwrite):
-    try:
-        assert_generate_is_true(output_filename, overwrite=overwrite)
-        assert not os.path.exists(output_filename)
-        output = capsys.readouterr().out
-        assert 'Writing compilation database with 2 entries to <stdout>' in output
-        
-        # Find where the JSON file starts and ends and decode it
-        start_index = output.index('[')
-        end_index = output.rindex(']') + 1
-        compdb = json.loads(output[start_index:end_index])
+def test_generate_output_stdout(capsys, overwrite):
+    assert_generate_is_true(sys.stdout, overwrite=overwrite)
+    assert not os.path.exists("<stdout>")
+    output = capsys.readouterr().out
+    assert 'Writing compilation database with 2 entries to <stdout>' in output
 
-        assert_compdb_equals(compdb, multiple_commands_oneline_compdb)
-    finally:
-        if os.path.exists(output_filename):
-            os.remove(output_filename)
+    # Find where the JSON file starts and ends and decode it
+    start_index = output.index('[')
+    end_index = output.rindex(']') + 1
+    compdb = json.loads(output[start_index:end_index])
+
+    assert_compdb_equals(compdb, multiple_commands_oneline_compdb)
 
 
-def assert_generate_is_true(output_filename, overwrite):
-    with input_file('multiple_commands_oneline') as instream:
+def assert_generate_is_true(outstream, overwrite):
+    with input_file('multiple_commands_oneline.txt') as instream:
         assert generate(
             infile=instream,
-            outfile=output_filename,
+            outfile=outstream,
             build_dir=os.getcwd(),
             exclude_files=[],
             verbose=True,
@@ -207,14 +146,15 @@ def assert_generate_is_true(output_filename, overwrite):
             strict=False
         )
 
-def assert_compdb_file_equals(compdb_path, expected_compdb):
+
+def assert_compdb_file_equals(outfile_path, expected_compdb):
     try:
-        with open(compdb_path, 'r') as instream:
+        with open(outfile_path, 'r') as instream:
             compdb = json.load(instream)
             assert_compdb_equals(compdb, expected_compdb)
     finally:
-        if os.path.exists(compdb_path):
-            os.remove(compdb_path)
+        if os.path.exists(outfile_path):
+            os.remove(outfile_path)
 
 
 def assert_compdb_equals(compdb, expected_compdb):

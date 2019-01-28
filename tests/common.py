@@ -23,6 +23,15 @@ from os import path
 data_dir = path.abspath(path.join(path.dirname(__file__), 'data'))
 
 
+def full_path(relpath):
+    return path.join(data_dir, relpath)
+
+
 def input_file(relpath):
-    relpath = '{}.txt'.format(relpath)
-    return open(path.join(data_dir, relpath), 'r')
+    relpath = '{}'.format(relpath)
+    return open(full_path(relpath), 'r')
+
+
+def output_file(relpath):
+    relpath = '{}'.format(relpath)
+    return open(full_path(relpath), 'a+')
