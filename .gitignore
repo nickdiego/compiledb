@@ -105,3 +105,6 @@ ENV/
 # mypy
 .mypy_cache/
 
+# vim-related
+*.swp
+*.swo
