@@ -125,8 +125,8 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=
             wrappers = c['wrappers']
             unknown = ["'%s'" % w for w in wrappers if w not in compiler_wrappers]
             if unknown and verbose:
-                    unknown = ', '.join(unknown)
-                    print("Add command with unknown wrapper(s) {}".format(unknown))
+                unknown = ', '.join(unknown)
+                print("Add command with unknown wrapper(s) {}".format(unknown))
 
             # add entry to database
             tokens = c['tokens']
