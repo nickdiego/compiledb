@@ -151,7 +151,7 @@ def test_parse_with_non_build_cmd_entries():
 
 def test_automake_command():
     pwd = getcwd()
-    with input_file('autotools_simple') as build_log:
+    with input_file('autotools_simple.txt') as build_log:
         result = parse_build_log(
             build_log,
             proj_dir=pwd,
@@ -180,7 +180,7 @@ def test_automake_command():
 
 def test_multiple_commands_per_line():
     pwd = getcwd()
-    with input_file('multiple_commands_oneline') as build_log:
+    with input_file('multiple_commands_oneline.txt') as build_log:
         result = parse_build_log(
             build_log,
             proj_dir=pwd,

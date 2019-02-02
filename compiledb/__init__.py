@@ -22,52 +22,59 @@
 import json
 import os
 import sys
-
 from compiledb.parser import parse_build_log, Error
 
 
-def __is_stdout(compdb_path):
-    return not compdb_path or compdb_path == '-'
+def __is_stdout(pfile):
+    try:
+        return pfile.name == sys.stdout.name
+    except:
+        return pfile == sys.stdout
+
+
+def basename(stream):
+    if __is_stdout(stream):
+        return "<stdout>"
+    else:
+        return os.path.basename(stream.name)
 
 
 def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False, exclude_files=[]):
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
-    print("## Processing build commands from {}".format(instream.name))
+    print("## Processing build commands from {}".format(basename(instream)))
     result = parse_build_log(instream, proj_dir, exclude_files, verbose)
     return result
 
 
-def write_json_compdb(compdb, compdb_path='compile_commands.json', verbose=False,
+def write_json_compdb(compdb, outstream, verbose=False,
                       force=False, pretty_output=True):
-    if not __is_stdout(compdb_path):
-        print("## Writing compilation database with {} entries to {}".format(
-            len(compdb), compdb_path))
+    print("## Writing compilation database with {} entries to {}".format(
+        len(compdb), basename(outstream)))
 
-        with open(compdb_path, 'w') as outstream:
-            json.dump(compdb, outstream, indent=pretty_output)
-            outstream.write(os.linesep)
-    else:
-        print("## Writing compilation database with {} entries to <stdout>".format(
-            len(compdb)))
-        print(json.dumps(compdb, indent=pretty_output))
+    # We could truncate after reading, but here is easier to understand
+    if not __is_stdout(outstream):
+        outstream.seek(0)
+        outstream.truncate()
+    json.dump(compdb, outstream, indent=pretty_output)
+    outstream.write(os.linesep)
 
 
-def load_json_compdb(compdb_path='compile_commands.json', verbose=False):
+def load_json_compdb(outstream, verbose=False):
     try:
-        if __is_stdout(compdb_path):
+        if __is_stdout(outstream):
             return []
 
-        with open(compdb_path, 'r') as instream:
-            compdb = json.load(instream)
-
+        # Read from beggining of file
+        outstream.seek(0)
+        compdb = json.load(outstream)
         print("## Loaded compilation database with {} entries from {}".format(
-            len(compdb), compdb_path))
+            len(compdb), basename(outstream)))
         return compdb
     except Exception as e:
         if verbose:
-            print("## Failed to read previous {}: {}".format(compdb_path, e))
+            print("## Failed to read previous {}: {}".format(basename(outstream), e))
         return []
 
 
