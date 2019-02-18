@@ -242,10 +242,10 @@ def unescape(s):
     return s.encode().decode('unicode_escape')
 
 
-if version_info[0] >= 3:  # Python 3
+if version_info.major >= 3 and version_info.minor >= 6:
     def run_cmd(cmd, encoding='utf-8', **kwargs):
         return subprocess.check_output(cmd, encoding=encoding, **kwargs)
-else:  # Python 2
+else:  # Python 2 and Python <= 3.5
     def run_cmd(cmd, encoding='utf-8', **kwargs):
         return subprocess.check_output(cmd, **kwargs)
 

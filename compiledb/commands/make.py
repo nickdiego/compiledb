@@ -9,10 +9,10 @@ from sys import exit, stdout, stderr, version_info
 from compiledb import generate
 
 
-if version_info[0] >= 3:  # Python 3
+if version_info.major >= 3 and version_info.minor >= 6:
     def popen(cmd, encoding='utf-8', **kwargs):
         return Popen(cmd, encoding=encoding, **kwargs)
-else:  # Python 2
+else:  # Python 2 and Python <= 3.5
     def popen(cmd, encoding='utf-8', **kwargs):
         return Popen(cmd, **kwargs)
 
@@ -99,7 +99,7 @@ def command(ctx, make_cmd, make_args):
         cmd = [make_cmd, logging_mode_flags] + list(make_args)
         if mock_script.path:
             cmd.append("SHELL={}".format(mock_script.path))
-        pipe = popen(cmd, stdout=PIPE, encoding='utf-8')
+        pipe = popen(cmd, stdout=PIPE)
         options.infile = pipe.stdout
         done = generate(**args)
         pipe.wait()
