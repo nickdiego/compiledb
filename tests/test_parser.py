@@ -200,6 +200,36 @@ def test_multiple_commands_per_line():
         ]
     }
 
+def test_multiple_commands_per_line_command_style():
+    """Test the command_style option using the multiple_commands_oneline.txt build log.
+    """
+    cwd = getcwd()
+
+    with input_file('multiple_commands_oneline.txt') as build_log:
+        result = parse_build_log(
+            build_log,
+            proj_dir=cwd,
+            exclude_files=[],
+            verbose=False,
+            command_style=True,
+        )
+
+    assert result.count == 2
+    assert result.skipped == 0
+    assert result.compdb == [
+        {
+            'command': 'g++ -c ./path/src/hein.cpp -o out.o',
+            'directory': cwd,
+            'file': './path/src/hein.cpp',
+        },
+        {
+            'command': 'gcc -c -o main.o main.c',
+            'directory': cwd,
+            'file': 'main.c',
+        }
+    ]
+
+
 def test_parse_file_extensions():
     pwd = getcwd()
     build_log = [

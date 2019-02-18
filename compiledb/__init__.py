@@ -39,12 +39,12 @@ def basename(stream):
         return os.path.basename(stream.name)
 
 
-def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False, exclude_files=[]):
+def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False, exclude_files=[], command_style=False):
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
     print("## Processing build commands from {}".format(basename(instream)))
-    result = parse_build_log(instream, proj_dir, exclude_files, verbose)
+    result = parse_build_log(instream, proj_dir, exclude_files, verbose, command_style=command_style)
     return result
 
 
@@ -93,9 +93,10 @@ def merge_compdb(compdb, new_compdb, check_files=True, verbose=False):
     return [v for k, v in orig.items() if check_file(k)]
 
 
-def generate(infile, outfile, build_dir, exclude_files, verbose, overwrite=False, strict=False):
+def generate(infile, outfile, build_dir, exclude_files, verbose, overwrite=False, strict=False, command_style=False):
     try:
-        r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose, exclude_files=exclude_files)
+        r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose, exclude_files=exclude_files,
+                                 command_style=command_style)
         compdb = [] if overwrite else load_json_compdb(outfile, verbose)
         compdb = merge_compdb(compdb, r.compdb, strict, verbose)
         write_json_compdb(compdb, outfile, verbose=verbose)

@@ -42,8 +42,7 @@ class ParsingResult(object):
         self.compdb = []
 
     def __str__(self):
-        return "Line count: {}, Skipped: {}, Entries: {}".format(
-            self.count, self.skipped, str(self.compdb))
+        return "Line count: {}, Skipped: {}, Entries: {}".format(self.count, self.skipped, str(self.compdb))
 
 
 class Error(Exception):
@@ -54,7 +53,7 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=[]):
+def parse_build_log(build_log, proj_dir, exclude_files, verbose, command_style=False, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
@@ -131,15 +130,23 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=
             # add entry to database
             tokens = c['tokens']
             arguments = [unescape(a) for a in tokens[len(wrappers):]]
+            command_str = ' '.join(arguments)
 
             if (verbose):
-                print("Adding command {}: {}".format(len(result.compdb), " ".join(arguments)))
+                print("Adding command {}: {}".format(len(result.compdb), command_str))
 
-            result.compdb.append({
-                'directory': working_dir,
-                'arguments': arguments,
-                'file': filepath,
-            })
+            if command_style:
+                result.compdb.append({
+                    'directory': working_dir,
+                    'command': command_str,
+                    'file': filepath,
+                })
+            else:
+                result.compdb.append({
+                    'directory': working_dir,
+                    'arguments': arguments,
+                    'file': filepath,
+                })
 
     return result
 
