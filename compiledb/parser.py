@@ -25,14 +25,14 @@ from sys import version_info
 
 
 # Internal variables used to parse build log entries
-cc_compile_regex = re.compile("^.*-?g?cc$|^.*-?clang-?[0-9.]*$")
-cpp_compile_regex = re.compile("^.*-?[gc]\+\+$|^.*-?clang\+\+-?[0-9.]*$")
-file_regex = re.compile("^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
+cc_compile_regex = re.compile(r"^.*-?g?cc$|^.*-?clang-?[0-9.]*$")
+cpp_compile_regex = re.compile(r"^.*-?[gc]\+\+$|^.*-?clang\+\+-?[0-9.]*$")
+file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
-make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
-make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
+make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
+make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
 
 
 class ParsingResult(object):
