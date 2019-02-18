@@ -27,7 +27,7 @@ from compiledb.parser import parse_build_log, Error
 
 def __is_stdout(pfile):
     try:
-        return pfile.name == sys.stdout.name
+        return pfile.name == sys.stdout.name or isinstance(pfile.name, int)
     except:
         return pfile == sys.stdout
 
