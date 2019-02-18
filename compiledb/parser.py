@@ -66,7 +66,7 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, command_style=F
         try:
             exclude_files = "|".join(exclude_files)
             exclude_files_regex = re.compile(exclude_files)
-        except:
+        except re.error:
             raise Error('Exclude files regex not valid: {}'.format(exclude_files))
 
     compiler_wrappers.update(extra_wrappers)
