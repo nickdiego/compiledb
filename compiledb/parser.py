@@ -25,14 +25,14 @@ from sys import version_info
 
 
 # Internal variables used to parse build log entries
-cc_compile_regex = re.compile("^.*-?g?cc$|^.*-?clang-?[0-9.]*$")
-cpp_compile_regex = re.compile("^.*-?[gc]\+\+$|^.*-?clang\+\+-?[0-9.]*$")
-file_regex = re.compile("^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
+cc_compile_regex = re.compile(r"^.*-?g?cc$|^.*-?clang-?[0-9.]*$")
+cpp_compile_regex = re.compile(r"^.*-?[gc]\+\+$|^.*-?clang\+\+-?[0-9.]*$")
+file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
-make_enter_dir = re.compile("^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
-make_leave_dir = re.compile("^\s*make\[\d+\]: Leaving directory .*$")
+make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
+make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
 
 
 class ParsingResult(object):
@@ -42,8 +42,7 @@ class ParsingResult(object):
         self.compdb = []
 
     def __str__(self):
-        return "Line count: {}, Skipped: {}, Entries: {}".format(
-            self.count, self.skipped, str(self.compdb))
+        return "Line count: {}, Skipped: {}, Entries: {}".format(self.count, self.skipped, str(self.compdb))
 
 
 class Error(Exception):
@@ -54,7 +53,7 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=[]):
+def parse_build_log(build_log, proj_dir, exclude_files, verbose, command_style=False, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
@@ -67,7 +66,7 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=
         try:
             exclude_files = "|".join(exclude_files)
             exclude_files_regex = re.compile(exclude_files)
-        except:
+        except re.error:
             raise Error('Exclude files regex not valid: {}'.format(exclude_files))
 
     compiler_wrappers.update(extra_wrappers)
@@ -131,15 +130,23 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, extra_wrappers=
             # add entry to database
             tokens = c['tokens']
             arguments = [unescape(a) for a in tokens[len(wrappers):]]
+            command_str = ' '.join(arguments)
 
             if (verbose):
-                print("Adding command {}: {}".format(len(result.compdb), " ".join(arguments)))
+                print("Adding command {}: {}".format(len(result.compdb), command_str))
 
-            result.compdb.append({
-                'directory': working_dir,
-                'arguments': arguments,
-                'file': filepath,
-            })
+            if command_style:
+                result.compdb.append({
+                    'directory': working_dir,
+                    'command': command_str,
+                    'file': filepath,
+                })
+            else:
+                result.compdb.append({
+                    'directory': working_dir,
+                    'arguments': arguments,
+                    'file': filepath,
+                })
 
     return result
 
@@ -235,10 +242,10 @@ def unescape(s):
     return s.encode().decode('unicode_escape')
 
 
-if version_info[0] >= 3:  # Python 3
+if version_info.major >= 3 and version_info.minor >= 6:
     def run_cmd(cmd, encoding='utf-8', **kwargs):
         return subprocess.check_output(cmd, encoding=encoding, **kwargs)
-else:  # Python 2
+else:  # Python 2 and Python <= 3.5
     def run_cmd(cmd, encoding='utf-8', **kwargs):
         return subprocess.check_output(cmd, **kwargs)
 
