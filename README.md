@@ -56,7 +56,7 @@ $ compiledb -n make
 from arbitrary text files (or stdin), assuming it has a build log (ideally generated using
 `make -Bnwk` command), and generates the corresponding JSON Compilation database.
 
-For example, to generate the compilation database  from `build-log.txt` file, use the following
+For example, to generate the compilation database from `build-log.txt` file, use the following
 command.
 ```bash
 $ compiledb --parse build-log.txt
@@ -72,6 +72,13 @@ Or even, to pipe make's output and print the compilation database to the standar
 $ make -Bnwk | compiledb -o-
 ```
 
+By default `compiledb` generates a JSON compilation database in the "arguments" list
+[format](https://clang.llvm.org/docs/JSONCompilationDatabase.html). The "command" string
+format is also supported through the use of the `--command-style` flag:
+```bash
+$ compiledb --command-style make
+```
+
 ## Testing / Contributing
 
 I've implemented this tool because I needed to index some [AOSP][aosp]'s modules for navigating
@@ -83,10 +90,12 @@ could use it with some great tools, such as:
 
 - [Vim][vim] + [YouCompleteMe][ycm] + [rtags][rtags] + [chromatica.nvim][chrom]
 - [Neovim][neovim] + [LanguageClient-neovim][lsp] + [cquery][cquery] + [deoplete][deoplete]
+- [Neovim][neovim] + [ALE][ale] + [ccls][ccls]
 
 Notice:
 - _Windows: tested on Windows 10 with cmd, wsl(Ubuntu), mingw32_
-- _Linux: tested only on Arch Linux so far_
+- _Linux: tested only on Arch Linux and Ubuntu 18 so far_
+- _Mac: tested on macOS 10.13 and 10.14_
 
 Patches are always welcome :)
 
@@ -106,3 +115,5 @@ GNU GPLv3
 [lsp]: https://github.com/autozimu/LanguageClient-neovim
 [cquery]: https://github.com/cquery-project/cquery
 [deoplete]: https://github.com/Shougo/deoplete.nvim
+[ccls]: https://github.com/MaskRay/ccls
+[ale]: https://github.com/w0rp/ale
