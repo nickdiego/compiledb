@@ -80,7 +80,7 @@ def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overw
     log_level = logging.DEBUG if verbose else logging.ERROR
     logging.basicConfig(level=log_level, format=None)
     if ctx.invoked_subcommand is None:
-        done = generate(infile, outfile, build_dir, exclude_files, verbose, overwrite, not no_strict, command_style)
+        done = generate(infile, outfile, build_dir, exclude_files, overwrite, not no_strict, command_style)
         exit(0 if done else 1)
     else:
         ctx.obj = Options(infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, not no_strict,
