@@ -21,6 +21,7 @@
 import bashlex
 import re
 import subprocess
+import logging
 from sys import version_info
 
 
@@ -33,6 +34,8 @@ compiler_wrappers = {"ccache", "icecc", "sccache"}
 # Leverage `make --print-directory` option
 make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
 make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
+
+logger = logging.getLogger(__name__)
 
 
 class ParsingResult(object):
@@ -53,12 +56,11 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, exclude_files, verbose, command_style=False, extra_wrappers=[]):
+def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
-        if verbose:
-            print("[INFO] Line {}: {}. Ignoring: '{}'".format(lineno, reason, cmd))
+        logger.debug("Line {}: {}. Ignoring: '{}'".format(lineno, reason, cmd))
         result.skipped += 1
 
     exclude_files_regex = None
@@ -123,17 +125,16 @@ def parse_build_log(build_log, proj_dir, exclude_files, verbose, command_style=F
 
             wrappers = c['wrappers']
             unknown = ["'%s'" % w for w in wrappers if w not in compiler_wrappers]
-            if unknown and verbose:
+            if unknown:
                 unknown = ', '.join(unknown)
-                print("Add command with unknown wrapper(s) {}".format(unknown))
+                logger.debug("Add command with unknown wrapper(s) {}".format(unknown))
 
             # add entry to database
             tokens = c['tokens']
             arguments = [unescape(a) for a in tokens[len(wrappers):]]
             command_str = ' '.join(arguments)
 
-            if (verbose):
-                print("Adding command {}: {}".format(len(result.compdb), command_str))
+            logger.debug("Adding command {}: {}".format(len(result.compdb), command_str))
 
             if command_style:
                 result.compdb.append({
@@ -211,7 +212,7 @@ class CommandProcessor(bashlex.ast.nodevisitor):
     def visitcommand(self, node, cmd):
         self.check_last_cmd()
         self.cmd = self.line[node.pos[0]:node.pos[1]]
-        # print('New command: {}'.format(self.cmd))
+        logger.debug('New command: {}'.format(self.cmd))
         return True
 
     def visitword(self, node, word):

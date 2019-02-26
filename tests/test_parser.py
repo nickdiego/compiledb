@@ -28,9 +28,8 @@ def test_empty():
     build_log = ''
     proj_dir = '/tmp'
     exclude_files = []
-    verbose = False
 
-    result = parse_build_log(build_log, proj_dir, exclude_files, verbose)
+    result = parse_build_log(build_log, proj_dir, exclude_files)
     assert result.count == 0
     assert result.skipped == 0
     assert result.compdb is not None
@@ -44,8 +43,7 @@ def test_trivial_build_command():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        exclude_files=[],
-        verbose=False)
+        exclude_files=[])
 
     assert result.count == 1
     assert result.skipped == 0
@@ -63,8 +61,7 @@ def test_build_commands_with_version():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        exclude_files=[],
-        verbose=False)
+        exclude_files=[])
 
     assert result.count == 1
     assert result.skipped == 0
@@ -87,8 +84,7 @@ def test_build_commands_with_wrapper():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        exclude_files=[],
-        verbose=True)
+        exclude_files=[])
 
     assert result.count == 4
     assert result.skipped == 0
@@ -132,8 +128,7 @@ def test_parse_with_non_build_cmd_entries():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        exclude_files=[],
-        verbose=True)
+        exclude_files=[])
 
     assert result.count == 2
     assert result.skipped == 6
@@ -155,8 +150,7 @@ def test_automake_command():
         result = parse_build_log(
             build_log,
             proj_dir=pwd,
-            exclude_files=[],
-            verbose=False)
+            exclude_files=[])
 
     assert result.count == 1
     assert result.skipped == 0
@@ -184,8 +178,7 @@ def test_multiple_commands_per_line():
         result = parse_build_log(
             build_log,
             proj_dir=pwd,
-            exclude_files=[],
-            verbose=False)
+            exclude_files=[])
 
     assert result.count == 2
     assert result.skipped == 0
@@ -210,7 +203,6 @@ def test_multiple_commands_per_line_command_style():
             build_log,
             proj_dir=cwd,
             exclude_files=[],
-            verbose=False,
             command_style=True,
         )
 
@@ -242,8 +234,7 @@ def test_parse_file_extensions():
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
-        exclude_files=[],
-        verbose=True)
+        exclude_files=[])
 
     assert result.count == 5
     assert result.skipped == 0

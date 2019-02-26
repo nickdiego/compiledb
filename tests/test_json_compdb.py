@@ -52,7 +52,7 @@ multiple_commands_oneline_compdb = [
 nonexistent_files = ['compile_commands.json', 'nonexistent.json']
 
 
-def test_load_compdb_path_file_exists(capsys):
+def test_load_compdb_path_file_exists(caplog):
     try:
         orig_pwd = os.getcwd()
         os.chdir(data_dir)
@@ -72,18 +72,18 @@ def test_load_compdb_path_file_exists(capsys):
             assert load_json_compdb(outfile) == expected_compdb
             assert (
                 'Loaded compilation database with 1 entries from compile_commands.json'
-                in capsys.readouterr().out
+                in caplog.text
             )
     finally:
         os.chdir(orig_pwd)
 
 
-def test_load_compdb_ignores_stdout_filename(capsys):
-    assert load_json_compdb(sys.stdout, verbose=True) == []
-    assert capsys.readouterr().out == ''
+def test_load_compdb_ignores_stdout_filename(caplog):
+    assert load_json_compdb(sys.stdout) == []
+    assert caplog.text == ''
 
 
-def test_generate_input_file_exists_no_overwrite(capsys):
+def test_generate_input_file_exists_no_overwrite(caplog):
     shutil.copy(full_path('compile_commands2.json'),
                 full_path('result.json'))
     with output_file("result.json") as outfile:
@@ -102,29 +102,27 @@ def test_generate_input_file_exists_no_overwrite(capsys):
         }
     ]
     assert_compdb_file_equals(outfile.name, expected_compdb)
-    output = capsys.readouterr().out
-    assert 'Loaded compilation database with 1 entries from ' + basename(outfile.name) in output
-    assert 'Writing compilation database with 3 entries to ' + basename(outfile.name) in output
+    assert 'Loaded compilation database with 1 entries from ' + basename(outfile.name) in caplog.text
+    assert 'Writing compilation database with 3 entries to ' + basename(outfile.name) in caplog.text
 
 
-def test_generate_input_file_exists_overwrite(capsys):
+def test_generate_input_file_exists_overwrite(caplog):
     shutil.copy(full_path('compile_commands2.json'),
                 full_path('result.json'))
     with output_file("result.json") as outfile:
         assert_generate_is_true(outfile, overwrite=True)
 
     assert_compdb_file_equals(outfile.name, multiple_commands_oneline_compdb)
-    output = capsys.readouterr().out
-    assert 'Loaded compilation database with 1 entries from ' + basename(outfile.name) not in output
-    assert 'Writing compilation database with 2 entries to ' + basename(outfile.name) in output
+    assert 'Loaded compilation database with 1 entries from ' + basename(outfile.name) not in caplog.text
+    assert 'Writing compilation database with 2 entries to ' + basename(outfile.name) in caplog.text
 
 
 @pytest.mark.parametrize('overwrite', [False, True])
-def test_generate_output_stdout(capsys, overwrite):
+def test_generate_output_stdout(capsys, caplog, overwrite):
     assert_generate_is_true(sys.stdout, overwrite=overwrite)
     assert not os.path.exists("<stdout>")
     output = capsys.readouterr().out
-    assert 'Writing compilation database with 2 entries to <stdout>' in output
+    assert 'Writing compilation database with 2 entries to <stdout>' in caplog.text
 
     # Find where the JSON file starts and ends and decode it
     start_index = output.index('[')
@@ -141,7 +139,6 @@ def assert_generate_is_true(outstream, overwrite):
             outfile=outstream,
             build_dir=os.getcwd(),
             exclude_files=[],
-            verbose=True,
             overwrite=overwrite,
             strict=False
         )

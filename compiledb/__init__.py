@@ -22,7 +22,10 @@
 import json
 import os
 import sys
+import logging
 from compiledb.parser import parse_build_log, Error
+
+logger = logging.getLogger(__name__)
 
 
 def __is_stdout(pfile):
@@ -39,18 +42,17 @@ def basename(stream):
         return os.path.basename(stream.name)
 
 
-def generate_json_compdb(instream=None, proj_dir=os.getcwd(), verbose=False, exclude_files=[], command_style=False):
+def generate_json_compdb(instream=None, proj_dir=os.getcwd(), exclude_files=[], command_style=False):
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
-    print("## Processing build commands from {}".format(basename(instream)))
-    result = parse_build_log(instream, proj_dir, exclude_files, verbose, command_style=command_style)
+    logger.info("## Processing build commands from {}".format(basename(instream)))
+    result = parse_build_log(instream, proj_dir, exclude_files, command_style=command_style)
     return result
 
 
-def write_json_compdb(compdb, outstream, verbose=False,
-                      force=False, pretty_output=True):
-    print("## Writing compilation database with {} entries to {}".format(
+def write_json_compdb(compdb, outstream, force=False, pretty_output=True):
+    logger.info("## Writing compilation database with {} entries to {}".format(
         len(compdb), basename(outstream)))
 
     # We could truncate after reading, but here is easier to understand
@@ -61,7 +63,7 @@ def write_json_compdb(compdb, outstream, verbose=False,
     outstream.write(os.linesep)
 
 
-def load_json_compdb(outstream, verbose=False):
+def load_json_compdb(outstream):
     try:
         if __is_stdout(outstream):
             return []
@@ -69,16 +71,15 @@ def load_json_compdb(outstream, verbose=False):
         # Read from beggining of file
         outstream.seek(0)
         compdb = json.load(outstream)
-        print("## Loaded compilation database with {} entries from {}".format(
+        logger.info("## Loaded compilation database with {} entries from {}".format(
             len(compdb), basename(outstream)))
         return compdb
     except Exception as e:
-        if verbose:
-            print("## Failed to read previous {}: {}".format(basename(outstream), e))
+        logger.debug("## Failed to read previous {}: {}".format(basename(outstream), e))
         return []
 
 
-def merge_compdb(compdb, new_compdb, check_files=True, verbose=False):
+def merge_compdb(compdb, new_compdb, check_files=True):
     def gen_key(entry):
         if 'directory' in entry:
             return os.path.join(entry['directory'], entry['file'])
@@ -93,15 +94,15 @@ def merge_compdb(compdb, new_compdb, check_files=True, verbose=False):
     return [v for k, v in orig.items() if check_file(k)]
 
 
-def generate(infile, outfile, build_dir, exclude_files, verbose, overwrite=False, strict=False, command_style=False):
+def generate(infile, outfile, build_dir, exclude_files, overwrite=False, strict=False,
+             command_style=False):
     try:
-        r = generate_json_compdb(infile, proj_dir=build_dir, verbose=verbose, exclude_files=exclude_files,
-                                 command_style=command_style)
-        compdb = [] if overwrite else load_json_compdb(outfile, verbose)
-        compdb = merge_compdb(compdb, r.compdb, strict, verbose)
-        write_json_compdb(compdb, outfile, verbose=verbose)
-        print("## Done.")
+        r = generate_json_compdb(infile, proj_dir=build_dir, exclude_files=exclude_files, command_style=command_style)
+        compdb = [] if overwrite else load_json_compdb(outfile)
+        compdb = merge_compdb(compdb, r.compdb, strict)
+        write_json_compdb(compdb, outfile)
+        logger.info("## Done.")
         return True
     except Error as e:
-        print(str(e))
+        logger.error(e)
         return False
