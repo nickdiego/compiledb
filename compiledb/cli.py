@@ -23,6 +23,7 @@
 import click
 import os
 import sys
+import logging
 
 from . import generate
 from .commands import make
@@ -76,6 +77,8 @@ def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overw
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
+    log_level = logging.DEBUG if verbose else logging.ERROR
+    logging.basicConfig(level=log_level, format=None)
     if ctx.invoked_subcommand is None:
         done = generate(infile, outfile, build_dir, exclude_files, verbose, overwrite, not no_strict, command_style)
         exit(0 if done else 1)
