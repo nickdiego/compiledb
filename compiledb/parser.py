@@ -26,8 +26,8 @@ from sys import version_info
 
 
 # Internal variables used to parse build log entries
-cc_compile_regex = re.compile(r"^.*-?g?cc$|^.*-?clang-?[0-9.]*$")
-cpp_compile_regex = re.compile(r"^.*-?[gc]\+\+$|^.*-?clang\+\+-?[0-9.]*$")
+cc_compile_regex = re.compile(r"^.*-?g?cc-?[0-9.]*$|^.*-?clang-?[0-9.]*$")
+cpp_compile_regex = re.compile(r"^.*-?[gc]\+\+-?[0-9.]*$|^.*-?clang\+\+-?[0-9.]*$")
 file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
