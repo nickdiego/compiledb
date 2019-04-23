@@ -261,3 +261,37 @@ def test_parse_file_extensions():
         'arguments': ['gcc', '-c', '-o', 'what.o', 'what.s']
     }]
 
+
+def test_exclude_arguments():
+    pwd = getcwd()
+    build_log = [
+        'gcc -c somefile.cpp\n'
+        'gcc -fso-long-and-thanks-for-all-the-fish -c main.cxx -o main.o\n'
+        'gcc -Wall -Werror -W12345-i-can-eat-a-fish-alive -c main.cc -o main.o\n'
+        'gcc -fish -c pond.c -o pond.o\n'
+        ]
+    result = parse_build_log(
+        build_log,
+        proj_dir=pwd,
+        exclude_args=['.+fish.*', '-Werror'])
+
+    assert result.count == 4
+    assert result.skipped == 0
+    assert len(result.compdb) == 4
+    assert result.compdb == [{
+        'directory': pwd,
+        'file': 'somefile.cpp',
+        'arguments': ['gcc', '-c', 'somefile.cpp']
+    }, {
+        'directory': pwd,
+        'file': 'main.cxx',
+        'arguments': ['gcc', '-c', 'main.cxx', '-o', 'main.o'],
+    }, {
+        'directory': pwd,
+        'file': 'main.cc',
+        'arguments': ['gcc', '-c', 'main.cc', '-o', 'main.o'],
+    }, {
+        'directory': pwd,
+        'file': 'pond.c',
+        'arguments': ['gcc', '-fish', '-c', 'pond.c', '-o', 'pond.o'],
+    }]

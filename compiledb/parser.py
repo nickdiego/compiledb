@@ -56,7 +56,7 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, extra_wrappers=[]):
+def parse_build_log(build_log, proj_dir, exclude_files, exclude_args, command_style=False, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
@@ -70,6 +70,14 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, ext
             exclude_files_regex = re.compile(exclude_files)
         except re.error:
             raise Error('Exclude files regex not valid: {}'.format(exclude_files))
+
+    exclude_args_regex = None
+    if len(exclude_args) > 0:
+        try:
+            exclude_args = '|'.join(exclude_args)
+            exclude_args_regex = re.compile(exclude_args)
+        except re.error:
+            raise Error('Exclude args regex not valid: {}'.format(exclude_args))
 
     compiler_wrappers.update(extra_wrappers)
 
@@ -132,6 +140,10 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, ext
             # add entry to database
             tokens = c['tokens']
             arguments = [unescape(a) for a in tokens[len(wrappers):]]
+
+            if exclude_args_regex:
+                arguments = [a for a in arguments if not exclude_args_regex.match(a)]
+
             command_str = ' '.join(arguments)
 
             logger.debug("Adding command {}: {}".format(len(result.compdb), command_str))

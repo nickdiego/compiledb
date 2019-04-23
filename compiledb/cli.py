@@ -35,12 +35,13 @@ class Options(object):
     """ Simple data class used to store command line options
     shared by all compiledb subcommands"""
 
-    def __init__(self, infile, outfile, build_dir, exclude_files, no_build,
-                 verbose, overwrite, strict, command_style):
+    def __init__(self, infile, outfile, build_dir, exclude_files, exclude_args,
+                 no_build, verbose, overwrite, strict, command_style):
         self.infile = infile
         self.outfile = outfile
         self.build_dir = build_dir
         self.exclude_files = exclude_files
+        self.exclude_args = exclude_args
         self.verbose = verbose
         self.no_build = no_build
         self.overwrite = overwrite
@@ -61,6 +62,8 @@ class Options(object):
               help="Path to be used as initial build dir", default=os.getcwd())
 @click.option('-e', '--exclude', 'exclude_files', multiple=True,
               help="Regular expressions to exclude files.")
+@click.option('-x', '--exclude-args', 'exclude_args', multiple=True,
+              help="Regular expressions to exclude arguments.")
 @click.option('-n', '--no-build', is_flag=True, default=False,
               help='Only generates compilation db file.')
 @click.option('-v', '--verbose', is_flag=True, default=False,
@@ -73,17 +76,17 @@ class Options(object):
               help='Output compilation database with single "command" '
               'string rather than the default "arguments" list of strings.')
 @click.pass_context
-def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict, command_style):
+def cli(ctx, infile, outfile, build_dir, exclude_files, exclude_args, no_build, verbose, overwrite, no_strict, command_style):
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
     log_level = logging.DEBUG if verbose else logging.ERROR
     logging.basicConfig(level=log_level, format=None)
     if ctx.invoked_subcommand is None:
-        done = generate(infile, outfile, build_dir, exclude_files, overwrite, not no_strict, command_style)
+        done = generate(infile, outfile, build_dir, exclude_files, exclude_args, overwrite, not no_strict, command_style)
         exit(0 if done else 1)
     else:
-        ctx.obj = Options(infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, not no_strict,
+        ctx.obj = Options(infile, outfile, build_dir, exclude_files, exclude_args, no_build, verbose, overwrite, not no_strict,
                           command_style)
 
 
