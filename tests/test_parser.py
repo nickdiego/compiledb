@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#   compiledb-generator: Tool for generating LLVM Compilation Database
+#   compiledb: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
 #
 #   Copyright (c) 2017 Nick Diego Yamane <nick.diego@gmail.com>
@@ -120,7 +120,7 @@ def test_parse_with_non_build_cmd_entries():
     ]
     # These ones will reach the bashlex parsing code and
     # would generate a parsing exception
-    # https://github.com/nickdiego/compiledb-generator/issues/38
+    # https://github.com/nickdiego/compiledb/issues/38
     build_log += [
         'checking for gcc... (cached) gcc\n',
         'checking whether gcc accepts -g... (cached) yes\n'

@@ -49,9 +49,9 @@ setup(
         ],
     },
     project_urls={
-        'Issue Tracking': 'https://github.com/nickdiego/compiledb-generator/issues',
+        'Issue Tracking': 'https://github.com/nickdiego/compiledb/issues',
         # 'Funding': 'https://donate.pypi.org',
-        # 'Samples': 'https://github.com/nickdiego/compiledb-generator/samples',
+        # 'Samples': 'https://github.com/nickdiego/compiledb/samples',
     },
 )
 

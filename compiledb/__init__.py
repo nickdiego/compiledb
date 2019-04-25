@@ -1,5 +1,5 @@
 #
-#   compiledb-generator: Tool for generating LLVM Compilation Database
+#   compiledb: Tool for generating LLVM Compilation Database
 #   files for make-based build systems.
 #
 #   Copyright (c) 2017 Nick Diego Yamane <nick.diego@gmail.com>
