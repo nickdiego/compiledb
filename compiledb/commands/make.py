@@ -101,6 +101,7 @@ def command(ctx, make_cmd, make_args):
             cmd.append("SHELL={}".format(mock_script.path))
         pipe = popen(cmd, stdout=PIPE)
         options.infile = pipe.stdout
+        del args['verbose']
         done = generate(**args)
         pipe.wait()
     exit(0 if done else 1)
