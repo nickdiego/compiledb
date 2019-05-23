@@ -3,18 +3,11 @@ import os
 import stat
 import tempfile
 
-from subprocess import call, PIPE, Popen
-from sys import exit, stdout, stderr, version_info
+from subprocess import call, PIPE
+from sys import exit, stdout, stderr
 
 from compiledb import generate
-
-
-if version_info.major >= 3 and version_info.minor >= 6:
-    def popen(cmd, encoding='utf-8', **kwargs):
-        return Popen(cmd, encoding=encoding, **kwargs)
-else:  # Python 2 and Python <= 3.5
-    def popen(cmd, encoding='utf-8', **kwargs):
-        return Popen(cmd, **kwargs)
+from compiledb.utils import popen
 
 
 class AutoconfMockScript:
