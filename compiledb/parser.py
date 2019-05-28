@@ -20,10 +20,10 @@
 #
 import bashlex
 import re
-import subprocess
 import logging
-from sys import version_info
 
+from compiledb.compiler import get_compiler
+from compiledb.utils import run_cmd
 
 # Internal variables used to parse build log entries
 cc_compile_regex = re.compile(r"^.*-?g?cc-?[0-9.]*$|^.*-?clang-?[0-9.]*$")
@@ -56,7 +56,8 @@ class Error(Exception):
         return "Error: {}".format(self.msg)
 
 
-def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, extra_wrappers=[]):
+def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add_predefined_macros=False,
+                    use_full_path=False, extra_wrappers=[]):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
@@ -132,6 +133,16 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, ext
             # add entry to database
             tokens = c['tokens']
             arguments = [unescape(a) for a in tokens[len(wrappers):]]
+
+            compiler = get_compiler(arguments[0])
+
+            if add_predefined_macros:
+                predefined_macros = compiler.get_predefined_macros(arguments, filepath)
+                arguments.extend(predefined_macros)
+
+            if use_full_path:
+                arguments[0] = compiler.full_path
+
             command_str = ' '.join(arguments)
 
             logger.debug("Adding command {}: {}".format(len(result.compdb), command_str))
@@ -241,13 +252,5 @@ class CommandProcessor(bashlex.ast.nodevisitor):
 
 def unescape(s):
     return s.encode().decode('unicode_escape')
-
-
-if version_info.major >= 3 and version_info.minor >= 6:
-    def run_cmd(cmd, encoding='utf-8', **kwargs):
-        return subprocess.check_output(cmd, encoding=encoding, **kwargs)
-else:  # Python 2 and Python <= 3.5
-    def run_cmd(cmd, encoding='utf-8', **kwargs):
-        return subprocess.check_output(cmd, **kwargs)
 
 # ex: ts=2 sw=4 et filetype=python
