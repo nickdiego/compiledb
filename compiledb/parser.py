@@ -35,6 +35,9 @@ compiler_wrappers = {"ccache", "icecc", "sccache"}
 make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
 make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
 
+# We want to skip such lines from configure to avoid spurious MAKE expansion errors.
+checking_make = re.compile(r"^checking whether .* sets \$\(\w+\)\.\.\. (yes|no)$")
+
 logger = logging.getLogger(__name__)
 
 
@@ -98,6 +101,8 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
         if (make_leave_dir.match(line)):
             dir_stack.pop()
             working_dir = dir_stack[-1]
+            continue
+        if (checking_make.match(line)):
             continue
 
         commands = []
