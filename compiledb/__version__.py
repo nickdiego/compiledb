@@ -1,7 +1,7 @@
 __title__ = 'compiledb'
 __description__ = 'Tool for generating Clang JSON Compilation Database files for make-based build systems.'
 __url__ = 'https://github.com/nickdiego/compiledb'
-__version__ = '0.10.0'
+__version__ = '0.10.1'
 __author__ = 'Nick Yamane'
 __author_email__ = 'nick@diegoyam.com'
 __license__ = 'GPLv3'
