@@ -7,7 +7,7 @@ from subprocess import call, PIPE
 from sys import exit, stdout, stderr
 
 from compiledb import generate
-from compiledb.utils import popen
+from compiledb.utils import popen, cmd_join
 
 
 class AutoconfMockScript:
@@ -92,7 +92,7 @@ def command(ctx, make_cmd, make_args):
         cmd = [make_cmd, logging_mode_flags] + list(make_args)
         if mock_script.path:
             cmd.append("SHELL={}".format(mock_script.path))
-        pipe = popen(cmd, stdout=PIPE)
+        pipe = popen(cmd_join(cmd), stdout=PIPE)
         options.infile = pipe.stdout
         del args['verbose']
         done = generate(**args)

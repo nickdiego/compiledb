@@ -13,3 +13,12 @@ else:  # Python 2 and Python <= 3.5
 
     def run_cmd(cmd, encoding='utf-8', **kwargs):
         return subprocess.check_output(cmd, **kwargs)
+
+try:
+    from shlex import quote as cmd_quote
+except ImportError:
+    from pipes import quote as cmd_quote
+
+
+def cmd_join(cmd):
+    return ' '.join(cmd_quote(s) for s in cmd)
