@@ -33,7 +33,7 @@ compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
 make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
-make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
+make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
 
 # We want to skip such lines from configure to avoid spurious MAKE expansion errors.
 checking_make = re.compile(r"^checking whether .* sets \$\(\w+\)\.\.\. (yes|no)$")
@@ -94,13 +94,18 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
 
         # Parse directory that make entering/leaving
         enter_dir = make_enter_dir.match(line)
+        leave_dir = make_leave_dir.match(line)
         if (make_enter_dir.match(line)):
             working_dir = enter_dir.group('dir')
             dir_stack.append(working_dir)
             continue
         if (make_leave_dir.match(line)):
-            dir_stack.pop()
-            working_dir = dir_stack[-1]
+            leaving_dir = leave_dir.group('dir')
+            if working_dir == leaving_dir:
+                dir_stack.pop()
+                working_dir = dir_stack[-1]
+            else:
+                dir_stack.remove(leaving_dir)
             continue
         if (checking_make.match(line)):
             continue
