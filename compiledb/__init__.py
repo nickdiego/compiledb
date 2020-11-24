@@ -99,7 +99,7 @@ def merge_compdb(compdb, new_compdb, check_files=True, win_posix_shell=None):
 
 
 def generate(infile, outfile, build_dir, exclude_files, overwrite=False, strict=False,
-             add_predefined_macros=False, use_full_path=False, command_style=False, 
+             add_predefined_macros=False, use_full_path=False, command_style=False,
              win_posix_shell=None):
     try:
         r = generate_json_compdb(infile, proj_dir=build_dir, exclude_files=exclude_files,
