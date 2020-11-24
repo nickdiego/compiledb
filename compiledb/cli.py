@@ -36,7 +36,8 @@ class Options(object):
     shared by all compiledb subcommands"""
 
     def __init__(self, infile, outfile, build_dir, exclude_files, no_build,
-                 verbose, overwrite, strict, add_predefined_macros, use_full_path, command_style):
+                 verbose, overwrite, strict, add_predefined_macros, use_full_path, command_style,
+                 win_posix_shell):
         self.infile = infile
         self.outfile = outfile
         self.build_dir = build_dir
@@ -48,6 +49,7 @@ class Options(object):
         self.add_predefined_macros = add_predefined_macros
         self.use_full_path = use_full_path
         self.command_style = command_style
+        self.win_posix_shell = win_posix_shell
 
 
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
@@ -79,9 +81,11 @@ class Options(object):
 @click.option('--command-style', is_flag=True, default=False,
               help='Output compilation database with single "command" '
               'string rather than the default "arguments" list of strings.')
+@click.option('--win-posix-shell', 'win_posix_shell', type=click.Choice(['msys', 'cygwin'], case_sensitive=False), default=None,
+              help='Allowing for special pathname conventions of windows Posix shell envs.')
 @click.pass_context
 def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict, add_predefined_macros,
-        use_full_path, command_style):
+        use_full_path, command_style, win_posix_shell):
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
@@ -89,11 +93,11 @@ def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overw
     logging.basicConfig(level=log_level, format=None)
     if ctx.invoked_subcommand is None:
         done = generate(infile, outfile, build_dir, exclude_files, overwrite, not no_strict, add_predefined_macros,
-                        use_full_path, command_style)
+                        use_full_path, command_style, win_posix_shell)
         exit(0 if done else 1)
     else:
         ctx.obj = Options(infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, not no_strict,
-                          add_predefined_macros, use_full_path, command_style)
+                          add_predefined_macros, use_full_path, command_style, win_posix_shell)
 
 
 # Add subcommands

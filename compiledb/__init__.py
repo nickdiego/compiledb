@@ -83,10 +83,26 @@ def load_json_compdb(outstream):
         return []
 
 
-def merge_compdb(compdb, new_compdb, check_files=True):
+_cygdrive_prefix = "/cygdrive/"
+_len_cygdrive_prefix = len(_cygdrive_prefix)
+
+
+def _pathname_join(dir, pathname, win_posix_shell):
+    if win_posix_shell == "msys":
+        # MSYS drive-letter convention.
+        if len(pathname) > 2 and pathname[0] == '/' and pathname[2] == '/':
+            pathname = pathname[1] + ':' + pathname[2:]
+    elif win_posix_shell == "cygwin":
+        if pathname.startswith(_cygdrive_prefix):
+            prefix_len = len(cydrive_prefix)
+            pathname = pathname[_len_cygdrive_prefix+1] + ':' + pathname[_len_cygdrive_prefix+2:]
+    return os.path.join(dir, pathname)
+
+
+def merge_compdb(compdb, new_compdb, check_files=True, win_posix_shell=None):
     def gen_key(entry):
         if 'directory' in entry:
-            return os.path.join(entry['directory'], entry['file'])
+            return _pathname_join(entry['directory'], entry['file'], win_posix_shell)
         return entry['directory']
 
     def check_file(path):
@@ -99,13 +115,14 @@ def merge_compdb(compdb, new_compdb, check_files=True):
 
 
 def generate(infile, outfile, build_dir, exclude_files, overwrite=False, strict=False,
-             add_predefined_macros=False, use_full_path=False, command_style=False):
+             add_predefined_macros=False, use_full_path=False, command_style=False, 
+             win_posix_shell=None):
     try:
         r = generate_json_compdb(infile, proj_dir=build_dir, exclude_files=exclude_files,
                                  add_predefined_macros=add_predefined_macros, use_full_path=use_full_path,
                                  command_style=command_style)
         compdb = [] if overwrite else load_json_compdb(outfile)
-        compdb = merge_compdb(compdb, r.compdb, strict)
+        compdb = merge_compdb(compdb, r.compdb, strict, win_posix_shell)
         write_json_compdb(compdb, outfile)
         logger.info("## Done.")
         return True
