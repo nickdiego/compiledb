@@ -25,9 +25,8 @@ def cmd_join(cmd):
     return ' '.join(cmd_quote(s) for s in cmd)
 
 
-
-_cygdrive_prefix = "/cygdrive/"
-_len_cygdrive_prefix = len(_cygdrive_prefix)
+_CYGDRIVE_PREFIX = "/cygdrive/"
+_LEN_CYGDRIVE_PREFIX = len(_CYGDRIVE_PREFIX)
 
 
 def to_native_pathname(pathname, win_posix_shell):
@@ -37,14 +36,12 @@ def to_native_pathname(pathname, win_posix_shell):
             return pathname[1] + ':' + pathname[2:]
     elif win_posix_shell == "cygwin":
         # Cygwin "/cygdrive" convention
-        if pathname.startswith(_cygdrive_prefix):
-            prefix_len = len(cydrive_prefix)
-            return pathname[_len_cygdrive_prefix+1] + ':' + pathname[_len_cygdrive_prefix+2:]
+        if pathname.startswith(_CYGDRIVE_PREFIX):
+            return pathname[_LEN_CYGDRIVE_PREFIX+1] + ':' + pathname[_LEN_CYGDRIVE_PREFIX+2:]
     else:
         return pathname
 
 
-def joined_native_pathname(dir, pathname, win_posix_shell):
-   
+def joined_native_pathname(dir_pathname, pathname, win_posix_shell):
     pathname = to_native_pathname(pathname, win_posix_shell)
-    return os.path.join(dir, pathname)
+    return os.path.join(dir_pathname, pathname)

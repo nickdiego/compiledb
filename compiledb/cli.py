@@ -81,11 +81,12 @@ class Options(object):
 @click.option('--command-style', is_flag=True, default=False,
               help='Output compilation database with single "command" '
               'string rather than the default "arguments" list of strings.')
-@click.option('--win-posix-shell', 'win_posix_shell', type=click.Choice(['msys', 'cygwin'], case_sensitive=False), default=None,
+@click.option('--win-posix-shell', 'win_posix_shell', type=click.Choice(['msys', 'cygwin'], 
+              case_sensitive=False), default=None,
               help='Allowing for special pathname conventions of windows Posix shell envs.')
 @click.pass_context
-def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, no_strict, add_predefined_macros,
-        use_full_path, command_style, win_posix_shell):
+def cli(ctx, infile, outfile, build_dir, exclude_files, no_build, verbose, overwrite, 
+        no_strict, add_predefined_macros, use_full_path, command_style, win_posix_shell):
     """Clang's Compilation Database generator for make-based build systems.
        When no subcommand is used it will parse build log/commands and generates
        its corresponding Compilation database."""
