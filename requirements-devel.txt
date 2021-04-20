@@ -5,7 +5,7 @@ shutilwhich==1.1.0
 enum34==1.1.6
 more-itertools==4.1.0
 pluggy==0.6.0
-py==1.5.3
+py==1.10.0
 pytest==3.5.1
 six==1.11.0
 
