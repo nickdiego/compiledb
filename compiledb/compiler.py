@@ -27,7 +27,7 @@ class Compiler:
             },
         }
 
-        if name == "clang" or name == "nvcc":
+        if name == "clang" or name == "nvcc" or name == "clang++":
             self._languages["c++"]["extensions"].append("cu")
 
         # Keep a list of macros for each language since, for example, gcc can be used both for C and C++ sources.
