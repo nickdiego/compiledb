@@ -21,6 +21,7 @@
 import bashlex
 import re
 import logging
+import sys
 
 from compiledb.compiler import get_compiler
 from compiledb.utils import run_cmd
@@ -137,7 +138,7 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
 
             # add entry to database
             tokens = c['tokens']
-            arguments = [unescape(a) for a in tokens[len(wrappers):]]
+            arguments = [a for a in tokens[len(wrappers):]]
 
             compiler = get_compiler(arguments[0])
 
@@ -178,12 +179,63 @@ class SubstCommandVisitor(bashlex.ast.nodevisitor):
         self.substs.append(n)
         return False
 
+def cross_platform_argline(s, platform='this'):
+    """Multi-platform variant of shlex.split() for command-line splitting.
+    For use with subprocess, for argv injection etc. Using fast REGEX.
+
+    platform: 'this' = auto from current platform;
+              1 = POSIX; 
+              0 = Windows/CMD
+              (other values reserved)
+
+    Cudos: https://stackoverflow.com/a/35900070/2349761
+    """
+    if platform == 'this':
+        platform = (sys.platform != 'win32')
+    if platform == 1:
+        RE_CMD_LEX = r'''"((?:\\["\\]|[^"])*)"|'([^']*)'|(\\.)|(&&?|\|\|?|\d?\>|[<])|([^\s'"\\&|<>]+)|(\s+)|(.)'''
+    elif platform == 0:
+        RE_CMD_LEX = r'''"((?:""|\\["\\]|[^"])*)"?()|(\\\\(?=\\*")|\\")|(&&?|\|\|?|\d?>|[<])|([^\s"&|<>]+)|(\s+)|(.)'''
+    else:
+        raise AssertionError('unkown platform %r' % platform)
+
+    args = []
+    accu = None   # collects pieces of one arg
+    for qs, qss, esc, pipe, word, white, fail in re.findall(RE_CMD_LEX, s):
+        if word:
+            if platform == 0:
+                word = word.replace('\\\\', '\\').replace('\\', '\\\\')
+        elif esc:
+            word = esc[1]
+        elif white or pipe:
+            if accu is not None:
+                args.append(accu)
+            if pipe:
+                args.append(pipe)
+            accu = None
+            continue
+        elif fail:
+            raise ValueError("invalid or incomplete shell string")
+        elif qs:
+            if platform == 0:
+                word = word.replace('""', '"')
+                word = repr(qs).encode().decode('unicode_escape')
+        else:
+            word = qss   # may be even empty; must be last
+
+        accu = (accu or '') + word
+
+    if accu is not None:
+        args.append(accu)
+
+    return args
 
 class CommandProcessor(bashlex.ast.nodevisitor):
     """Uses bashlex to parse and traverse the resulting bash AST
        looking for and extracting compilation commands."""
-    @staticmethod
     def process(line, wd):
+        args = cross_platform_argline(line)
+        line = " ".join(args)
         trees = bashlex.parser.parse(line)
         if not trees:
             return []
@@ -253,9 +305,5 @@ class CommandProcessor(bashlex.ast.nodevisitor):
                                  compiler=self.compiler, filepath=self.filepath))
         # reset state to process new command
         self.reset()
-
-
-def unescape(s):
-    return s.encode().decode('unicode_escape')
 
 # ex: ts=2 sw=4 et filetype=python
