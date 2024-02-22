@@ -20,10 +20,10 @@ class Compiler:
         # Supported languages by the compiler
         self._languages = {
             "c": {
-                "extensions": ["c"]
+                "extensions": ["c", "m"]
             },
             "c++": {
-                "extensions": ["cpp", "cc", "cx", "cxx"],
+                "extensions": ["cpp", "cc", "cx", "cxx", "mm"],
             },
         }
 
