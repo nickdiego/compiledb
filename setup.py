@@ -37,7 +37,6 @@ setup(
     install_requires=[
         'click',
         'bashlex',
-        'shutilwhich'
     ],
     extras_require={
         'dev': [],

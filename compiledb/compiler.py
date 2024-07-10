@@ -2,7 +2,7 @@ import logging
 import os
 from subprocess import PIPE
 
-from shutilwhich import which
+from shutil import which
 
 from compiledb.utils import popen
 
