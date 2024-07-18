@@ -2,7 +2,7 @@ version: 3
 jobs:
   build:
     docker:
-      - image: circleci/python:3.11-bookworm
+      - image: circleci/python:3.11
 
     working_directory: ~/repo
 
