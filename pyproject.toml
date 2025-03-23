@@ -10,7 +10,7 @@ local_scheme = "node-and-date"
 name = "compiledb"
 dynamic = ["version"] # determined dynamically from git refs. See tools.setuptool_scm above.
 description = "Tool for generating Clang JSON Compilation Database files for make-based build systems."
-license = "GPL-3.0-or-later"
+license = {text = "GPL-3.0-or-later"}
 authors = [{name = "Nick Yamane", email = "nickdiego@igalia.com"}]
 requires-python = ">=2.7"
 dependencies = [
