@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "compiledb"
-version = "0.10.1"
+version = "0.10.2"
 description = "Tool for generating Clang JSON Compilation Database files for make-based build systems."
 license = {file = "LICENSE"}
 authors = [{name = "Nick Yamane", email = "nickdiego@igalia.com"}]
