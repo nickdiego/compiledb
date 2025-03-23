@@ -21,7 +21,7 @@
 
 from compiledb import cli
 
-if(__name__ == "__main__"):
+if (__name__ == "__main__"):
     cli.cli()
 
 # ex: ts=2 sw=4 et filetype=python
