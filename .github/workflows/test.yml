@@ -26,5 +26,8 @@ jobs:
           python -m pip install -U pip
           python -m pip install ".[dev]"
 
+      - name: Lint
+        run: python -m flake8 compiledb
+
       - name: Test
         run: python -m pytest
