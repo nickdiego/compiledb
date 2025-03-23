@@ -1,10 +1,14 @@
 [build-system]
-requires = ["setuptools>=61.0.0", "wheel"]
+requires = ["setuptools>=61.0.0", "setuptools_scm[toml]>=7.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
 
 [project]
 name = "compiledb"
-version = "0.10.2"
+version = "0.10.1" # determined dynamically from git refs. See tools.setuptool_scm above.
 description = "Tool for generating Clang JSON Compilation Database files for make-based build systems."
 license = {file = "LICENSE"}
 authors = [{name = "Nick Yamane", email = "nickdiego@igalia.com"}]
