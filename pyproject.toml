@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "compiledb"
+version = "0.10.1"
+description = "Tool for generating Clang JSON Compilation Database files for make-based build systems."
+license = {file = "LICENSE"}
+authors = [{name = "Nick Yamane", email = "nickdiego@igalia.com"}]
+requires-python = ">=2.7"
+dependencies = [
+  "click",
+  "bashlex",
+  "shutilwhich"
+]
+readme = "README.md"
+keywords = [
+  "compilation-database",
+  "clang",
+  "c",
+  "cpp",
+  "makefile",
+  "make",
+  "language-server",
+  "lsp"
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Build Tools",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Programming Language :: Python :: 2",
+  "Programming Language :: Python :: 2.7",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.6",
+  "Operating System :: OS Independent"
+]
+
+[project.scripts]
+compiledb = "compiledb.cli:cli"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "coverage",
+  "pytest-cov",
+  "pycodestyle",
+  "flake8",
+  "tox"
+]
+
+[project.urls]
+Repository = "https://github.com/nickdiego/compiledb.git"
+Issues = "https://github.com/nickdiego/compiledb/issues"
+
