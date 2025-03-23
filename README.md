@@ -101,6 +101,9 @@ Patches are always welcome :)
 ## License
 GNU GPLv3
 
+## Related Project
+[compiledb-go]: compiledb go version
+
 [compdb]: https://clang.llvm.org/docs/JSONCompilationDatabase.html
 [ycm]: https://github.com/Valloric/YouCompleteMe
 [rtags]: https://github.com/Andersbakken/rtags
@@ -116,3 +119,4 @@ GNU GPLv3
 [deoplete]: https://github.com/Shougo/deoplete.nvim
 [ccls]: https://github.com/MaskRay/ccls
 [ale]: https://github.com/w0rp/ale
+[compiledb-go]: https://github.com/fcying/compiledb-go
