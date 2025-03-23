@@ -1,9 +1,7 @@
-name: Publish to PyPI and TestPyPI
+name: Publish to PyPI
 
 on:
   push:
-    branches:
-      - main
     tags:
       - '*'
 
@@ -88,25 +86,3 @@ jobs:
         gh release upload
         "$GITHUB_REF_NAME" dist/**
         --repo "$GITHUB_REPOSITORY"
-
-  publish-to-testpypi:
-    name: Publish to TestPyPI
-    if: github.ref == 'refs/heads/main'  # only publish to TestPyPI on main pushes
-    needs:
-    - build
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/compiledb
-    permissions:
-      id-token: write
-    steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
-    - name: Publish artifacts to TestPyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        repository-url: https://test.pypi.org/legacy/
