@@ -21,10 +21,9 @@ YCM-generator's fake-toolchanin approach.
 ```
 # pip install compiledb
 ```
-- Supports Python 2.x and 3.x (for now, tested only with 2.7 and 3.6 versions)
+- Supports Python >= 3.3
 - For bash completion support, add the content of `sh-completion/compiledb.bash` file
   to your `.bashrc` file, for example.
-- _ZSH completion coming soon :)_
 
 ## Usage
 
