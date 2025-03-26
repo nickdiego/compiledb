@@ -28,7 +28,7 @@ from compiledb.utils import run_cmd
 # Internal variables used to parse build log entries
 cc_compile_regex = re.compile(r"^.*-?g?cc-?[0-9.]*$|^.*-?clang-?[0-9.]*$")
 cpp_compile_regex = re.compile(r"^.*-?[gc]\+\+-?[0-9.]*$|^.*-?clang\+\+-?[0-9.]*$")
-file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
+file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.mpp$|^.+\.mxx$|^.+\.s$", re.IGNORECASE)
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
