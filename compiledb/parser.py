@@ -32,8 +32,8 @@ file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNO
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
-make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
-make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
+make_enter_dir = re.compile(r"^\s*make\[\d+\]: (Entering directory|\u8fdb\u5165\u76ee\u5f55)\s*[`\'\"\u201c](?P<dir>.*)[`\'\"\u201d]\s*$")
+make_leave_dir = re.compile(r"^\s*make\[\d+\]: (Leaving directory|\u79bb\u5f00\u76ee\u5f55) .*$")
 
 # We want to skip such lines from configure to avoid spurious MAKE expansion errors.
 checking_make = re.compile(r"^checking whether .* sets \$\(\w+\)\.\.\. (yes|no)$")
