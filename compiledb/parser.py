@@ -23,7 +23,7 @@ import re
 import logging
 
 from compiledb.compiler import get_compiler
-from compiledb.utils import run_cmd
+from compiledb.utils import run_cmd, to_native_pathname
 
 # Internal variables used to parse build log entries
 cc_compile_regex = re.compile(r"^.*-?g?cc-?[0-9.]*$|^.*-?clang-?[0-9.]*$")
@@ -32,8 +32,8 @@ file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNO
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
-make_enter_dir = re.compile(r"^\s*make\[\d+\]: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
-make_leave_dir = re.compile(r"^\s*make\[\d+\]: Leaving directory .*$")
+make_enter_dir = re.compile(r"^\s*make(\[\d+\])?: Entering directory [`\'\"](?P<dir>.*)[`\'\"]\s*$")
+make_leave_dir = re.compile(r"^\s*make(\[\d+\])?: Leaving directory .*$")
 
 # We want to skip such lines from configure to avoid spurious MAKE expansion errors.
 checking_make = re.compile(r"^checking whether .* sets \$\(\w+\)\.\.\. (yes|no)$")
@@ -60,7 +60,7 @@ class Error(Exception):
 
 
 def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add_predefined_macros=False,
-                    use_full_path=False, extra_wrappers=[]):
+                    use_full_path=False, extra_wrappers=[], win_posix_shell=None):
     result = ParsingResult()
 
     def skip_line(cmd, reason):
@@ -96,6 +96,7 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
         enter_dir = make_enter_dir.match(line)
         if (make_enter_dir.match(line)):
             working_dir = enter_dir.group('dir')
+            working_dir = to_native_pathname(working_dir, win_posix_shell)
             dir_stack.append(working_dir)
             continue
         if (make_leave_dir.match(line)):
@@ -156,13 +157,13 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
                 result.compdb.append({
                     'directory': working_dir,
                     'command': command_str,
-                    'file': filepath,
+                    'file': to_native_pathname(filepath, win_posix_shell),
                 })
             else:
                 result.compdb.append({
                     'directory': working_dir,
                     'arguments': arguments,
-                    'file': filepath,
+                    'file': to_native_pathname(filepath, win_posix_shell),
                 })
 
     return result
