@@ -24,6 +24,9 @@ class Compiler:
             "c++": {
                 "extensions": ["cpp", "cc", "cx", "cxx"],
             },
+            "fortran": {
+                "extensions": [".f", ".for", ".ftn", ".f77", ".f90", ".f95", ".f03", ".f08", ".f15"],
+            },
         }
 
         # Keep a list of macros for each language since, for example, gcc can be used both for C and C++ sources.
@@ -52,8 +55,12 @@ class Compiler:
                 return arguments[arg_idx + 1]
 
             if "-std=" in arg:
-                if "++" in arg:
+                std_value = arg.split("=", 1)[1].lower() # get what's after "-std="
+                if "++" in std_value:
                     return "c++"
+                elif std_value.startswith("f"): # e.g. f95, f2003, f2018
+                    # doesn't catch some Fortran cases (e.g. gnu)
+                    return "fortran"
                 else:
                     return default
 
@@ -61,6 +68,8 @@ class Compiler:
 
         if extension in self._languages["c++"]["extensions"]:
             return "c++"
+        elif extension.lower() in self._languages["fortran"]["extensions"]:
+            return "fortran"
         else:
             return default
 
