@@ -28,7 +28,9 @@ from compiledb.utils import run_cmd
 # Internal variables used to parse build log entries
 cc_compile_regex = re.compile(r"^.*-?g?cc-?[0-9.]*$|^.*-?clang-?[0-9.]*$")
 cpp_compile_regex = re.compile(r"^.*-?[gc]\+\+-?[0-9.]*$|^.*-?clang\+\+-?[0-9.]*$")
+fortran_compile_regex = re.compile(r"^.*-?(gfortran|flang|ifort|nvfortran)-?[0-9.]*$")
 file_regex = re.compile(r"^.+\.c$|^.+\.cc$|^.+\.cpp$|^.+\.cxx$|^.+\.s$", re.IGNORECASE)
+fortran_file_regex = re.compile(r"^.+\.(f|for|ftn|f77|f90|f95|f03|f08|f15)$", re.IGNORECASE)
 compiler_wrappers = {"ccache", "icecc", "sccache"}
 
 # Leverage `make --print-directory` option
@@ -235,12 +237,13 @@ class CommandProcessor(bashlex.ast.nodevisitor):
         # Check if it looks like an entry of interest and
         # and try to determine the compiler
         if self.compiler is None:
-            if ((cc_compile_regex.match(word) or cpp_compile_regex.match(word)) and
+            if ((cc_compile_regex.match(word) or cpp_compile_regex.match(word)
+                                              or fortran_compile_regex.match(word)) and
                     word not in compiler_wrappers):
                 self.compiler = word
             else:
                 self.wrappers.append(word)
-        elif (file_regex.match(word)):
+        elif (file_regex.match(word) or fortran_file_regex.match(word)):
             self.filepath = word
 
         self.tokens.append(word)
