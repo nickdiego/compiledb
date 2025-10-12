@@ -18,6 +18,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from sre_compile import IN_LOC_IGNORE
 import bashlex
 import re
 import logging
@@ -58,6 +59,22 @@ class Error(Exception):
     def __str__(self):
         return "Error: {}".format(self.msg)
 
+def preprocess_build_log(build_log): 
+    new_build_log = []
+    inline_file_pattern = '@"(.*?)"'
+    
+    for line in build_log: 
+        result = re.search(inline_file_pattern, line)
+        while result is not None: 
+            inline_file_path = result.group(1)
+            with open(inline_file_path, "r") as file: 
+                inlined_text = file.read()
+            line = re.sub(pattern=inline_file_pattern, repl=inlined_text, string=line)
+            result = re.search(inline_file_pattern, line)
+        new_build_log += line.splitlines()
+
+    return new_build_log
+
 
 def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add_predefined_macros=False,
                     use_full_path=False, extra_wrappers=[]):
@@ -80,6 +97,8 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
     dir_stack = [proj_dir]
     working_dir = proj_dir
     lineno = 0
+
+    build_log = preprocess_build_log(build_log)
 
     # Process build log
     for line in build_log:
