@@ -18,7 +18,6 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from sre_compile import IN_LOC_IGNORE
 import bashlex
 import re
 import logging
