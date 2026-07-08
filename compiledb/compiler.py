@@ -22,7 +22,7 @@ class Compiler:
                 "extensions": ["c"]
             },
             "c++": {
-                "extensions": ["cpp", "cc", "cx", "cxx"],
+                "extensions": ["cpp", "cc", "cx", "cxx", "cu"],
             },
         }
 
