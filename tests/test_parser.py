@@ -230,15 +230,16 @@ def test_parse_file_extensions():
         'gcc -c main.cc -o main.o\n'
         'gcc -c -o swtch.o swtch.S\n'
         'gcc -c -o what.o what.s\n'
+        'nvcc -c main.cu -o main.o\n'
     ]
     result = parse_build_log(
         build_log,
         proj_dir=pwd,
         exclude_files=[])
 
-    assert result.count == 5
+    assert result.count == 6
     assert result.skipped == 0
-    assert len(result.compdb) == 5
+    assert len(result.compdb) == 6
     assert result.compdb == [{
         'directory': pwd,
         'file': 'somefile.cpp',
@@ -259,5 +260,8 @@ def test_parse_file_extensions():
         'directory': pwd,
         'file': 'what.s',
         'arguments': ['gcc', '-c', '-o', 'what.o', 'what.s']
+    }, {
+        'directory': pwd,
+        'file': 'main.cu',
+        'arguments': ['nvcc', '-c', 'main.cu', '-o', 'main.o']
     }]
-
