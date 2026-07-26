@@ -256,6 +256,6 @@ class CommandProcessor(bashlex.ast.nodevisitor):
 
 
 def unescape(s):
-    return s.encode().decode('unicode_escape')
+    return repr(s).encode().decode('unicode_escape')
 
 # ex: ts=2 sw=4 et filetype=python
