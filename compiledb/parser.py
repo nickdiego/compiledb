@@ -171,6 +171,7 @@ def parse_build_log(build_log, proj_dir, exclude_files, command_style=False, add
 class SubstCommandVisitor(bashlex.ast.nodevisitor):
     """Uses bashlex to parse and process sh/bash substitution commands.
        May result in a parsing exception for invalid commands."""
+
     def __init__(self):
         self.substs = []
 
