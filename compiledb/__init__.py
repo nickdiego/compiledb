@@ -87,7 +87,7 @@ def merge_compdb(compdb, new_compdb, check_files=True):
     def gen_key(entry):
         if 'directory' in entry:
             return os.path.join(entry['directory'], entry['file'])
-        return entry['directory']
+        return entry['file']
 
     def check_file(path):
         return True if not check_files else os.path.exists(path)
