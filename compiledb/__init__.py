@@ -25,7 +25,7 @@ import sys
 import logging
 
 from compiledb.parser import parse_build_log, Error
-
+from compiledb.utils import joined_native_pathname
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +45,13 @@ def basename(stream):
 
 
 def generate_json_compdb(instream=None, proj_dir=os.getcwd(), exclude_files=[], add_predefined_macros=False,
-                         use_full_path=False, command_style=False):
+                         use_full_path=False, command_style=False, win_posix_shell=None):
     if not os.path.isdir(proj_dir):
         raise Error("Project dir '{}' does not exists!".format(proj_dir))
 
     logger.info("## Processing build commands from {}".format(basename(instream)))
     result = parse_build_log(instream, proj_dir, exclude_files, add_predefined_macros=add_predefined_macros,
-                             use_full_path=use_full_path, command_style=command_style)
+                             use_full_path=use_full_path, command_style=command_style, win_posix_shell=win_posix_shell)
     return result
 
 
@@ -83,7 +83,7 @@ def load_json_compdb(outstream):
         return []
 
 
-def merge_compdb(compdb, new_compdb, check_files=True):
+def merge_compdb(compdb, new_compdb, check_files=True, win_posix_shell=None):
     def gen_key(entry):
         if 'directory' in entry:
             return os.path.join(entry['directory'], entry['file'])
@@ -99,13 +99,14 @@ def merge_compdb(compdb, new_compdb, check_files=True):
 
 
 def generate(infile, outfile, build_dir, exclude_files, overwrite=False, strict=False,
-             add_predefined_macros=False, use_full_path=False, command_style=False):
+             add_predefined_macros=False, use_full_path=False, command_style=False,
+             win_posix_shell=None):
     try:
         r = generate_json_compdb(infile, proj_dir=build_dir, exclude_files=exclude_files,
                                  add_predefined_macros=add_predefined_macros, use_full_path=use_full_path,
-                                 command_style=command_style)
+                                 command_style=command_style, win_posix_shell=win_posix_shell)
         compdb = [] if overwrite else load_json_compdb(outfile)
-        compdb = merge_compdb(compdb, r.compdb, strict)
+        compdb = merge_compdb(compdb, r.compdb, strict, win_posix_shell)
         write_json_compdb(compdb, outfile)
         logger.info("## Done.")
         return True
