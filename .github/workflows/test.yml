@@ -31,3 +31,15 @@ jobs:
 
       - name: Test
         run: python -m pytest
+
+  all-pass:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "One or more test jobs failed"
+            exit 1
+          fi
