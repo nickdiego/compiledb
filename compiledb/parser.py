@@ -58,15 +58,16 @@ class Error(Exception):
     def __str__(self):
         return "Error: {}".format(self.msg)
 
-def preprocess_build_log(build_log): 
+
+def preprocess_build_log(build_log):
     new_build_log = []
     inline_file_pattern = '@"(.*?)"'
-    
-    for line in build_log: 
+
+    for line in build_log:
         result = re.search(inline_file_pattern, line)
-        while result is not None: 
+        while result is not None:
             inline_file_path = result.group(1)
-            with open(inline_file_path, "r") as file: 
+            with open(inline_file_path, "r") as file:
                 inlined_text = file.read()
             line = re.sub(pattern=inline_file_pattern, repl=inlined_text, string=line)
             result = re.search(inline_file_pattern, line)
