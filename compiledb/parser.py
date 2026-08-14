@@ -71,7 +71,7 @@ def preprocess_build_log(build_log):
                 inlined_text = file.read()
             line = re.sub(pattern=inline_file_pattern, repl=inlined_text, string=line)
             result = re.search(inline_file_pattern, line)
-        new_build_log += line.splitlines()
+        new_build_log += line.splitlines() or [line]
 
     return new_build_log
 
