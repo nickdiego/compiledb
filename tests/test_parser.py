@@ -20,6 +20,8 @@
 #
 from os import getcwd
 
+import pytest
+
 from compiledb.parser import parse_build_log
 from tests.common import input_file
 
@@ -53,6 +55,49 @@ def test_trivial_build_command():
         'file': 'hello.c',
         'arguments': ['gcc', '-o', 'hello.o', '-c', 'hello.c']
     }
+
+
+@pytest.mark.parametrize('compiler', ['gcc', 'clang'])
+@pytest.mark.parametrize('extension', ['m', 'mm', 'M', 'MM'])
+@pytest.mark.parametrize('command_style', [False, True])
+def test_objective_c_build_commands(compiler, extension, command_style):
+    pwd = getcwd()
+    source = './src/hello.' + extension
+    arguments = [compiler, '-Iinclude', '-c', source, '-o', 'hello.o']
+    command = ' '.join(arguments)
+
+    result = parse_build_log(
+        [command], proj_dir=pwd, exclude_files=[], command_style=command_style)
+
+    expected = {'directory': pwd, 'file': source}
+    if command_style:
+        expected['command'] = command
+    else:
+        expected['arguments'] = arguments
+
+    assert result.count == 1
+    assert result.skipped == 0
+    assert result.compdb == [expected]
+
+
+def test_objective_c_build_commands_with_wrappers():
+    pwd = getcwd()
+    result = parse_build_log([
+        'ccache clang -c hello.m -o hello.o\n',
+        'sccache clang++ -c world.mm -o world.o\n',
+    ], proj_dir=pwd, exclude_files=[])
+
+    assert result.count == 2
+    assert result.skipped == 0
+    assert result.compdb == [{
+        'directory': pwd,
+        'file': 'hello.m',
+        'arguments': ['clang', '-c', 'hello.m', '-o', 'hello.o'],
+    }, {
+        'directory': pwd,
+        'file': 'world.mm',
+        'arguments': ['clang++', '-c', 'world.mm', '-o', 'world.o'],
+    }]
 
 
 def test_build_commands_with_version():
